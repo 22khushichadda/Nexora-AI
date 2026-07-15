@@ -1,0 +1,55 @@
+.header{
+
+    display:flex;
+
+    justify-content:flex-start;
+
+    align-items:center;
+
+    margin-bottom:30px;
+
+}
+
+.header-left{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.header h1{
+
+    color:white;
+
+    font-size:44px;
+
+    font-weight:700;
+
+    margin:0;
+
+    line-height:1.15;
+
+}
+
+.header h1 span{
+
+    background:linear-gradient(90deg,#8b3dff,#26c7ff);
+
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+
+}
+
+.header p{
+
+    margin-top:8px;
+
+    color:#8f95a9;
+
+    font-size:18px;
+
+    font-weight:400;
+
+}

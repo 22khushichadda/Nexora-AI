@@ -1,0 +1,223 @@
+.sidebar{
+
+    width:250px;
+
+    height:100vh;
+
+    background:#090b13;
+
+    border-right:1px solid rgba(255,255,255,.06);
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    padding:22px;
+
+}
+
+.logo-box{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+
+.logo-icon{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:14px;
+
+    background:linear-gradient(135deg,#7b3ff2,#24c6ff);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-size:24px;
+
+    font-weight:700;
+
+}
+
+.logo-box h2{
+
+    color:white;
+
+    font-size:30px;
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+}
+
+.divider{
+
+    height:1px;
+
+    background:rgba(255,255,255,.06);
+
+    margin:24px 0;
+
+}
+
+.menu{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+.menu button{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    width:100%;
+
+    border:none;
+
+    background:transparent;
+
+    color:#b8bfd1;
+
+    padding:14px 18px;
+
+    border-radius:16px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    transition:.25s;
+
+}
+
+.menu button:hover{
+
+    background:#171b27;
+
+    color:white;
+
+}
+
+.menu .active{
+
+    background:linear-gradient(90deg,#2d184d,#28163f);
+
+    color:white;
+
+}
+
+.new-chat-btn{
+
+    width:100%;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:linear-gradient(90deg,#8b3dff,#2dc4ff);
+
+    color:white;
+
+    font-size:16px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.new-chat-btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.user-card{
+
+    margin-top:18px;
+
+    background:#111520;
+
+    border-radius:14px;
+
+    padding:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    color:white;
+
+}
+
+.avatar{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:linear-gradient(135deg,#7b3ff2,#2dc4ff);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-weight:700;
+
+    font-size:15px;
+
+}
+
+.user-info{
+
+    flex:1;
+
+}
+
+.user-info h4{
+
+    font-size:15px;
+
+    font-weight:500;
+
+    margin:0;
+
+}
