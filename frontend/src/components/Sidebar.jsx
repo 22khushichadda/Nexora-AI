@@ -1,117 +1,88 @@
-import {
-  LayoutDashboard,
-  FileText,
-  MessageSquare,
-  History,
-  Settings,
-  Plus,
-  ChevronDown
-} from "lucide-react";
-
+import { motion } from "framer-motion";
 import "../styles/sidebar.css";
 
 function Sidebar() {
-  return (
-    <div className="sidebar">
 
-      <div>
+    return (
 
-        <div className="logo-box">
+        <motion.div
 
-          <div className="logo-icon">
+            className="sidebar"
 
-            N
+            initial={{ x: -120, opacity: 0 }}
 
-          </div>
+            animate={{ x: 0, opacity: 1 }}
 
-          <h2>
+            transition={{
 
-            NEXORA
+                duration: .8,
 
-          </h2>
+                ease: "easeOut"
 
-        </div>
+            }}
 
-        <div className="divider"></div>
+        >
 
-        <div className="menu">
+            <div>
 
-          <button className="active">
+                <div className="logo-area">
 
-            <LayoutDashboard size={20} />
+                    <div className="logo-icon">
 
-            Dashboard
+                        N
 
-          </button>
+                    </div>
 
-          <button>
+                    <h1>NEXORA</h1>
 
-            <FileText size={20} />
+                </div>
 
-            Documents
+                <div className="menu">
 
-          </button>
+                    <button>Dashboard</button>
 
-          <button>
+                    <button>Documents</button>
 
-            <MessageSquare size={20} />
+                    <button>AI Chat</button>
 
-            AI Chat
+                    <button>History</button>
 
-          </button>
+                    <button>Settings</button>
 
-          <button>
+                </div>
 
-            <History size={20} />
+            </div>
 
-            History
+            <div className="bottom">
 
-          </button>
+                <button className="primary-btn">
 
-          <button>
+                    + New Chat
 
-            <Settings size={20} />
+                </button>
 
-            Settings
+                <div className="user-card">
 
-          </button>
+                    <div className="avatar">
 
-        </div>
+                        NU
 
-      </div>
+                    </div>
 
-      <div>
+                    <div>
 
-        <button className="new-chat-btn">
+                        <h4>Nexora User</h4>
 
-          <Plus size={18} />
+                    </div>
 
-          New Chat
+                </div>
 
-        </button>
+            </div>
 
-        <div className="user-card">
+        </motion.div>
 
-          <div className="avatar">
+    );
 
-            NU
-
-          </div>
-
-          <div className="user-info">
-
-            <h4>Nexora User</h4>
-
-          </div>
-
-          <ChevronDown size={18} />
-
-        </div>
-
-      </div>
-
-    </div>
-  );
 }
 
 export default Sidebar;

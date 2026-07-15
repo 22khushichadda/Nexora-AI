@@ -1,17 +1,51 @@
+import { motion } from "framer-motion";
 import "../styles/header.css";
 
 function Header() {
 
     return (
 
-        <div className="header">
+        <motion.div
 
-            <div className="header-left">
+            className="header"
+
+            initial={{
+
+                opacity:0,
+
+                y:-30
+
+            }}
+
+            animate={{
+
+                opacity:1,
+
+                y:0
+
+            }}
+
+            transition={{
+
+                delay:.3,
+
+                duration:.7
+
+            }}
+
+        >
+
+            <div>
 
                 <h1>
 
                     Welcome Back,
-                    <span> Nexora User</span>
+
+                    <span>
+
+                        {" "}Nexora User
+
+                    </span>
 
                 </h1>
 
@@ -23,7 +57,7 @@ function Header() {
 
             </div>
 
-        </div>
+        </motion.div>
 
     );
 

@@ -66,13 +66,15 @@
 
 .title{
 
-    color:white;
+font-size:70px;
 
-    font-size:62px;
+font-weight:700;
 
-    margin-top:35px;
+letter-spacing:3px;
 
-    letter-spacing:3px;
+margin-top:35px;
+
+color:white;
 
 }
 

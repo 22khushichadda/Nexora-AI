@@ -2,14 +2,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import "./styles/global.css";
-
 import Dashboard from "./pages/Dashboard";
 import IntroScreen from "./components/IntroScreen";
 
+import "./styles/global.css";
+
 function App(){
 
-    const [entered,setEntered]=React.useState(false);
+    const [showDashboard,setShowDashboard]=React.useState(false);
 
     return(
 
@@ -17,7 +17,7 @@ function App(){
 
             {
 
-                entered ?
+                showDashboard ?
 
                 <Dashboard/>
 
@@ -25,7 +25,11 @@ function App(){
 
                 <IntroScreen
 
-                    onEnter={()=>setEntered(true)}
+                    onFinish={()=>
+
+                        setShowDashboard(true)
+
+                    }
 
                 />
 
@@ -37,16 +41,12 @@ function App(){
 
 }
 
-ReactDOM.createRoot(
+ReactDOM.createRoot(document.getElementById("root")).render(
 
-    document.getElementById("root")
+<React.StrictMode>
 
-).render(
+<App/>
 
-    <React.StrictMode>
-
-        <App/>
-
-    </React.StrictMode>
+</React.StrictMode>
 
 );

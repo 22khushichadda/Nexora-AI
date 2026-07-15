@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { Plus, ArrowUp, FileText, X } from "lucide-react";
 
+import Message from "./Message";
+
 import { uploadDocument, askAI } from "../services/api";
 
 import "../styles/chat.css";
@@ -14,6 +16,12 @@ function ChatBox() {
     const [loading, setLoading] = useState(false);
 
     const [uploadedFile, setUploadedFile] = useState(null);
+
+    const [messages, setMessages] = useState([]);
+
+    // -----------------------------
+    // Upload PDF
+    // -----------------------------
 
     const handleUpload = async (e) => {
 
@@ -29,21 +37,43 @@ function ChatBox() {
 
             setUploadedFile(file.name);
 
-            alert("PDF Uploaded Successfully!");
+            setMessages((prev) => [
+
+                ...prev,
+
+                {
+
+                    sender: "ai",
+
+                    text: `"${file.name}" uploaded successfully. You can now ask me anything about this document.`
+
+                }
+
+            ]);
 
         }
 
         catch (err) {
 
-            alert(
+            setMessages((prev) => [
 
-                err.response?.data?.detail ||
+                ...prev,
 
-                err.message ||
+                {
 
-                "Upload Failed"
+                    sender: "ai",
 
-            );
+                    text:
+
+                        err.response?.data?.detail ||
+
+                        err.message ||
+
+                        "Upload failed."
+
+                }
+
+            ]);
 
         }
 
@@ -55,28 +85,81 @@ function ChatBox() {
 
     };
 
+    // -----------------------------
+    // Ask AI
+    // -----------------------------
 
     const handleAsk = async () => {
 
         if (!question.trim()) return;
 
+        const currentQuestion = question;
+
+        setMessages((prev) => [
+
+            ...prev,
+
+            {
+
+                sender: "user",
+
+                text: currentQuestion
+
+            }
+
+        ]);
+
+        setQuestion("");
+
         try {
 
-            const response = await askAI(question);
+            setLoading(true);
 
-            alert(response.answer);
+            const response = await askAI(currentQuestion);
+
+            setMessages((prev) => [
+
+                ...prev,
+
+                {
+
+                    sender: "ai",
+
+                    text: response.answer
+
+                }
+
+            ]);
 
         }
 
         catch (err) {
 
-            alert(
+            setMessages((prev) => [
 
-                err.response?.data?.detail ||
+                ...prev,
 
-                err.message
+                {
 
-            );
+                    sender: "ai",
+
+                    text:
+
+                        err.response?.data?.detail ||
+
+                        err.message ||
+
+                        "Something went wrong."
+
+                }
+
+            ]);
+
+        }
+
+        finally {
+
+            setLoading(false);
 
         }
 
@@ -87,14 +170,52 @@ function ChatBox() {
         <>
 
             <input
-                type="file"
+
                 hidden
+
+                type="file"
+
                 accept=".pdf"
+
                 ref={fileInput}
+
                 onChange={handleUpload}
+
             />
 
-            <div className="chat-wrapper">
+            <div className={`chat-wrapper ${uploadedFile ? "has-file" : ""}`}>
+
+                {/* Chat History */}
+
+                {
+
+                    messages.length > 0 &&
+
+                    <div className="chat-history">
+
+                        {
+
+                            messages.map((msg, index) => (
+
+                                <Message
+
+                                    key={index}
+
+                                    sender={msg.sender}
+
+                                    text={msg.text}
+
+                                />
+
+                            ))
+
+                        }
+
+                    </div>
+
+                }
+
+                {/* Attached PDF */}
 
                 {
 
@@ -130,6 +251,8 @@ function ChatBox() {
 
                 }
 
+                {/* Chat Input */}
+
                 <div className="chat-box">
 
                     <button
@@ -140,7 +263,7 @@ function ChatBox() {
 
                     >
 
-                        <Plus size={20}/>
+                        <Plus size={20} />
 
                     </button>
 
@@ -148,9 +271,23 @@ function ChatBox() {
 
                         value={question}
 
-                        onChange={(e)=>setQuestion(e.target.value)}
-
                         placeholder="Ask anything about your document..."
+
+                        onChange={(e) =>
+
+                            setQuestion(e.target.value)
+
+                        }
+
+                        onKeyDown={(e) => {
+
+                            if (e.key === "Enter") {
+
+                                handleAsk();
+
+                            }
+
+                        }}
 
                     />
 
@@ -160,9 +297,11 @@ function ChatBox() {
 
                         onClick={handleAsk}
 
+                        disabled={loading}
+
                     >
 
-                        <ArrowUp size={18}/>
+                        <ArrowUp size={18} />
 
                     </button>
 

@@ -2,19 +2,23 @@
 
     width:100%;
 
-    margin-top:32px;
+    margin-top:4px;
 
     display:flex;
 
     flex-direction:column;
 
+    gap:0;
+
 }
+
+/* ---------------- FILE BAR ---------------- */
 
 .attached-file{
 
     width:100%;
 
-    height:58px;
+    height:54px;
 
     background:#171b27;
 
@@ -26,13 +30,11 @@
 
     display:flex;
 
-    align-items:center;
-
     justify-content:space-between;
 
-    padding:0 18px;
+    align-items:center;
 
-    margin:0;
+    padding:0 18px;
 
 }
 
@@ -62,8 +64,6 @@
 
     cursor:pointer;
 
-    transition:.3s;
-
 }
 
 .remove-file:hover{
@@ -72,27 +72,41 @@
 
 }
 
+/* ---------------- CHAT BOX ---------------- */
+
 .chat-box{
 
     width:100%;
 
-    height:72px;
+    height:74px;
 
     background:#11141f;
 
     border:1px solid rgba(255,255,255,.06);
 
-    border-radius:0 0 18px 18px;
-
     display:flex;
 
     align-items:center;
 
-    gap:14px;
+    gap:16px;
 
-    padding:0 16px;
+    padding:0 18px;
 
-    margin:0;
+}
+
+/* If no PDF is attached, make all four corners rounded */
+
+.chat-wrapper:not(.has-file) .chat-box{
+
+    border-radius:18px;
+
+}
+
+/* If PDF is attached */
+
+.has-file .chat-box{
+
+    border-radius:0 0 18px 18px;
 
 }
 
@@ -144,15 +158,15 @@
 
 .plus-btn:hover{
 
-    background:#1c2233;
+    background:#1d2334;
 
 }
 
 .send-btn{
 
-    width:46px;
+    width:48px;
 
-    height:46px;
+    height:48px;
 
     border:none;
 
@@ -169,5 +183,13 @@
     align-items:center;
 
     cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.send-btn:hover{
+
+    transform:scale(1.06);
 
 }

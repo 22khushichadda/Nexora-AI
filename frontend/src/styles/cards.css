@@ -1,18 +1,47 @@
+/* ==========================================================
+   DOCUMENT & BOOKMARK CARDS
+========================================================== */
+
 .doc-card{
 
     background:#111520;
 
-    border-radius:22px;
+    border:1px solid rgba(255,255,255,.06);
 
-    padding:18px 22px;
+    border-radius:18px;
 
-    border:1px solid rgba(255,255,255,.05);
+    height:82px;
 
-    height:fit-content;
+    display:flex;
+
+    justify-content:center;
+
+    padding:0 24px;
+
+    transition:all .35s ease;
 
 }
 
+.doc-card:hover{
+
+    transform:translateY(-2px);
+
+    border-color:rgba(122,108,255,.20);
+
+    box-shadow:0 12px 30px rgba(100,90,255,.08);
+
+}
+
+
+/* ==========================================================
+   CARD HEADER
+========================================================== */
+
 .card-header{
+
+    width:100%;
+
+    height:100%;
 
     display:flex;
 
@@ -23,6 +52,11 @@
     cursor:pointer;
 
 }
+
+
+/* ==========================================================
+   TITLE
+========================================================== */
 
 .title{
 
@@ -34,17 +68,55 @@
 
 }
 
+.title svg{
+
+    width:23px;
+
+    height:23px;
+
+    color:#ffffff;
+
+    flex-shrink:0;
+
+}
+
 .title h2{
-
-    color:white;
-
-    font-size:22px;
-
-    font-weight:600;
 
     margin:0;
 
+    color:white;
+
+    font-size:21px;
+
+    font-weight:700;
+
+    letter-spacing:-0.2px;
+
+    line-height:1;
+
 }
+
+
+/* ==========================================================
+   DROPDOWN
+========================================================== */
+
+.card-header > svg{
+
+    width:22px;
+
+    height:22px;
+
+    color:#d9d9e3;
+
+    transition:.3s ease;
+
+}
+
+
+/* ==========================================================
+   DOCUMENT LIST
+========================================================== */
 
 .doc-list{
 
@@ -54,9 +126,14 @@
 
     gap:12px;
 
-    margin-top:18px;
+    margin-top:16px;
 
 }
+
+
+/* ==========================================================
+   DOCUMENT ITEM
+========================================================== */
 
 .doc-item{
 
@@ -64,35 +141,42 @@
 
     align-items:center;
 
-    gap:16px;
+    gap:14px;
 
-    background:#171b27;
+    background:#181d29;
 
-    border-radius:16px;
+    border-radius:14px;
 
-    padding:14px;
-
-    transition:.25s;
+    padding:13px 15px;
 
     cursor:pointer;
+
+    transition:all .25s ease;
 
 }
 
 .doc-item:hover{
 
-    background:#202535;
+    background:#202637;
+
+    transform:translateX(4px);
 
 }
 
+
+/* ==========================================================
+   PDF ICON
+========================================================== */
+
 .pdf-icon{
 
-    width:44px;
+    width:42px;
 
-    height:44px;
+    height:42px;
 
     border-radius:12px;
 
-    background:#ff4b4b;
+    background:#ff4d4d;
 
     display:flex;
 
@@ -102,39 +186,53 @@
 
     color:white;
 
-    font-size:11px;
+    font-size:10px;
 
     font-weight:700;
+
+    flex-shrink:0;
+
+}
+
+
+/* ==========================================================
+   DOCUMENT INFO
+========================================================== */
+
+.doc-info{
+
+    display:flex;
+
+    flex-direction:column;
 
 }
 
 .doc-item h3{
 
+    margin:0;
+
     color:white;
 
-    font-size:17px;
+    font-size:16px;
 
-    margin:0 0 4px 0;
+    font-weight:600;
 
 }
 
 .doc-item p{
 
-    color:#9ca3af;
+    margin-top:4px;
 
-    margin:0;
+    color:#8f97a8;
 
-    font-size:14px;
-
-}
-
-.doc-item svg:last-child{
-
-    margin-left:auto;
-
-    color:#8a90a3;
+    font-size:13px;
 
 }
+
+
+/* ==========================================================
+   BOOKMARK ITEM
+========================================================== */
 
 .bookmark-item{
 
@@ -144,43 +242,52 @@
 
     align-items:center;
 
-    background:#171b27;
+    background:#181d29;
 
-    border-radius:16px;
+    border-radius:14px;
 
-    padding:15px 18px;
+    padding:13px 15px;
 
     cursor:pointer;
 
-    transition:.25s;
+    transition:all .25s ease;
 
 }
 
 .bookmark-item:hover{
 
-    background:#202535;
+    background:#202637;
+
+    transform:translateX(4px);
 
 }
 
 .bookmark-item h3{
 
+    margin:0;
+
     color:white;
 
-    margin:0 0 4px;
+    font-size:16px;
 
-    font-size:17px;
+    font-weight:600;
 
 }
 
 .bookmark-item p{
 
-    margin:0;
+    margin-top:4px;
 
-    color:#9ca3af;
+    color:#8f97a8;
 
-    font-size:14px;
+    font-size:13px;
 
 }
+
+
+/* ==========================================================
+   BACK BUTTON
+========================================================== */
 
 .back-button{
 
@@ -199,5 +306,43 @@
     cursor:pointer;
 
     margin-bottom:12px;
+
+}
+
+
+/* ==========================================================
+   EMPTY STATE
+========================================================== */
+
+.empty-text{
+
+    color:#8f97a8;
+
+    font-size:14px;
+
+    margin-top:12px;
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:900px){
+
+    .doc-card{
+
+        height:72px;
+
+        padding:0 18px;
+
+    }
+
+    .title h2{
+
+        font-size:18px;
+
+    }
 
 }

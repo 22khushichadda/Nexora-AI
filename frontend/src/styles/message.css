@@ -1,0 +1,127 @@
+.chat-history{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+    max-height:380px;
+
+    overflow-y:auto;
+
+    margin-bottom:20px;
+
+    padding-right:6px;
+
+}
+
+.chat-history::-webkit-scrollbar{
+
+    width:5px;
+
+}
+
+.chat-history::-webkit-scrollbar-thumb{
+
+    background:#2b3246;
+
+    border-radius:20px;
+
+}
+
+.message{
+
+    display:flex;
+
+    gap:14px;
+
+    align-items:flex-start;
+
+    animation:fadeUp .35s ease;
+
+}
+
+.message.user{
+
+    justify-content:flex-end;
+
+}
+
+.message.ai{
+
+    justify-content:flex-start;
+
+}
+
+.avatar{
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:50%;
+
+    background:#1d2332;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:18px;
+
+    flex-shrink:0;
+
+}
+
+.bubble{
+
+    max-width:72%;
+
+    padding:15px 18px;
+
+    border-radius:18px;
+
+    color:white;
+
+    font-size:15px;
+
+    line-height:1.7;
+
+    word-break:break-word;
+
+}
+
+.user .bubble{
+
+    background:linear-gradient(135deg,#8b3dff,#2ec5ff);
+
+}
+
+.ai .bubble{
+
+    background:#171b27;
+
+}
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(18px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}

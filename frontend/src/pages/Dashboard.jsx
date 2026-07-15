@@ -1,8 +1,9 @@
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
+import DashboardLayout from "../layouts/DashboardLayout";
+import PageTransition from "../components/PageTransition";
+
+import { motion } from "framer-motion";
 
 import ChatBox from "../components/ChatBox";
-
 import RecentDocuments from "../components/RecentDocuments";
 import Bookmarks from "../components/Bookmarks";
 
@@ -12,17 +13,41 @@ function Dashboard() {
 
     return (
 
-        <div className="app">
+        <DashboardLayout>
 
-            <Sidebar />
-
-            <div className="dashboard">
-
-                <Header />
+            <PageTransition>
 
                 <div className="dashboard-content">
 
-                    <div className="hero-card">
+                    <motion.div
+
+                        className="hero-card"
+
+                        initial={{
+
+                            opacity:0,
+
+                            scale:.92
+
+                        }}
+
+                        animate={{
+
+                            opacity:1,
+
+                            scale:1
+
+                        }}
+
+                        transition={{
+
+                            delay:.4,
+
+                            duration:.8
+
+                        }}
+
+                    >
 
                         <div className="hero-left">
 
@@ -53,23 +78,77 @@ function Dashboard() {
 
                         </div>
 
-                    </div>
+                    </motion.div>
 
-                    <ChatBox />
+                    <motion.div
 
-                    <div className="bottom-grid">
+                        initial={{
+
+                            opacity:0,
+
+                            y:40
+
+                        }}
+
+                        animate={{
+
+                            opacity:1,
+
+                            y:0
+
+                        }}
+
+                        transition={{
+
+                            delay:.7
+
+                        }}
+
+                    >
+
+                        <ChatBox />
+
+                    </motion.div>
+
+                    <motion.div
+
+                        className="bottom-grid"
+
+                        initial={{
+
+                            opacity:0,
+
+                            y:60
+
+                        }}
+
+                        animate={{
+
+                            opacity:1,
+
+                            y:0
+
+                        }}
+
+                        transition={{
+
+                            delay:1
+
+                        }}
+
+                    >
 
                         <RecentDocuments />
 
                         <Bookmarks />
 
-                    </div>
+                    </motion.div>
 
                 </div>
 
-            </div>
+            </PageTransition>
 
-        </div>
+        </DashboardLayout>
 
     );
 

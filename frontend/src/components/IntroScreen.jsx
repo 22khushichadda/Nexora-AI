@@ -1,55 +1,63 @@
 import { motion } from "framer-motion";
-import { TypeAnimation } from "react-type-animation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+
+import AnimatedBackground from "./AnimatedBackground";
+
 import "../styles/intro.css";
 
-function IntroScreen({ onEnter }) {
+function IntroScreen({ onFinish }) {
 
-    const [showButton, setShowButton] = useState(false);
+    useEffect(()=>{
 
-    useEffect(() => {
+        const timer=setTimeout(()=>{
 
-        const timer = setTimeout(() => {
+            onFinish();
 
-            setShowButton(true);
+        },3500);
 
-        }, 3200);
+        return()=>clearTimeout(timer);
 
-        return () => clearTimeout(timer);
+    },[]);
 
-    }, []);
-
-    return (
+    return(
 
         <motion.div
 
             className="intro"
 
-            initial={{ opacity: 0 }}
+            initial={{opacity:0}}
 
-            animate={{ opacity: 1 }}
+            animate={{opacity:1}}
 
-            exit={{ opacity: 0 }}
-
-            transition={{ duration: 1 }}
+            exit={{opacity:0}}
 
         >
 
-            <div className="background-blur"></div>
+            <AnimatedBackground/>
 
             <motion.div
 
                 className="logo"
 
-                initial={{ scale: .5, opacity: 0 }}
+                initial={{
 
-                animate={{ scale: 1, opacity: 1 }}
+                    scale:.5,
+
+                    opacity:0
+
+                }}
+
+                animate={{
+
+                    scale:1,
+
+                    opacity:1
+
+                }}
 
                 transition={{
 
-                    duration: 1.2,
-
-                    ease: "easeOut"
+                    duration:1
 
                 }}
 
@@ -59,87 +67,51 @@ function IntroScreen({ onEnter }) {
 
             </motion.div>
 
-            <TypeAnimation
-
-                sequence={[
-
-                    "",
-
-                    500,
-
-                    "NEXORA AI"
-
-                ]}
-
-                wrapper="h1"
-
-                speed={45}
-
-                cursor={false}
+            <motion.h1
 
                 className="title"
 
-            />
+                initial={{
+
+                    opacity:0,
+
+                    y:30
+
+                }}
+
+                animate={{
+
+                    opacity:1,
+
+                    y:0
+
+                }}
+
+                transition={{
+
+                    delay:.8
+
+                }}
+
+            >
+
+                NEXORA AI
+
+            </motion.h1>
 
             <motion.p
 
-                initial={{ opacity: 0 }}
+                initial={{opacity:0}}
 
-                animate={{ opacity: 1 }}
+                animate={{opacity:1}}
 
-                transition={{ delay: 1.8 }}
+                transition={{delay:1.4}}
 
             >
 
                 AI-powered document assistant
 
             </motion.p>
-
-            {
-
-                showButton &&
-
-                <motion.button
-
-                    className="enter-btn"
-
-                    whileHover={{
-
-                        scale: 1.05
-
-                    }}
-
-                    whileTap={{
-
-                        scale: .95
-
-                    }}
-
-                    onClick={onEnter}
-
-                    initial={{
-
-                        opacity:0,
-
-                        y:20
-
-                    }}
-
-                    animate={{
-
-                        opacity:1,
-
-                        y:0
-
-                    }}
-
-                >
-
-                    Enter Nexora
-
-                </motion.button>
-
-            }
 
         </motion.div>
 
