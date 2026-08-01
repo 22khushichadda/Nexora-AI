@@ -6,8 +6,7 @@ import os
 from app.database.database import get_db
 from app.database.models import Document
 
-from app.rag.retriever import Retriever
-from app.services.gemini_service import ask_gemini
+from app.services.rag_service import ask_question
 
 router = APIRouter(
     prefix="/chat",
@@ -26,9 +25,12 @@ def chat(
     db: Session = Depends(get_db)
 ):
 
-    document = db.query(Document).filter(
-        Document.workspace_id == request.workspace_id
-    ).first()
+    document = (
+        db.query(Document)
+        .filter(Document.workspace_id == request.workspace_id)
+        .order_by(Document.id.desc())
+        .first()
+    )
 
     if not document:
         raise HTTPException(
@@ -36,31 +38,52 @@ def chat(
             detail="No document found."
         )
 
+    if document.status != "ready":
+        return {
+            "answer": "🧠 Your document is still being processed.\n\nPlease wait a few seconds."
+        }
+
+    q = request.question.lower()
+
+    if "how many pages" in q:
+        return {
+            "answer": f"This document contains {document.pages} pages."
+        }
+
+    if "author" in q:
+        return {
+            "answer": document.author or "Author information unavailable."
+        }
+
+    if "title" in q:
+        return {
+            "answer": document.title or document.filename
+        }
+
     index_path = f"indexes/workspace_{request.workspace_id}.index"
 
     if not os.path.exists(index_path):
-
         raise HTTPException(
             status_code=404,
             detail="Vector index not found."
         )
 
-    retriever = Retriever(index_path)
+    try:
 
-    chunks = retriever.retrieve(
-        request.question,
-        k=5
-    )
+        response = ask_question(
+            request.workspace_id,
+            request.question
+        )
 
-    context = "\n\n".join(chunks)
+        return {
+            "question": request.question,
+            "answer": response["answer"],
+            "sources": response["sources"]
+        }
 
-    answer = ask_gemini(
-        context,
-        request.question
-    )
+    except Exception as e:
 
-    return {
-        "question": request.question,
-        "context": chunks,
-        "answer": answer
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

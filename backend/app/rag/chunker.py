@@ -3,24 +3,40 @@ from typing import List
 
 def chunk_text(
     text: str,
-    chunk_size: int = 500,
-    overlap: int = 100
+    chunk_size: int = 800,
+    overlap: int = 150
 ) -> List[str]:
 
-    words = text.split()
+    paragraphs = [
+
+        p.strip()
+
+        for p in text.split("\n")
+
+        if p.strip()
+
+    ]
 
     chunks = []
 
-    start = 0
+    current_chunk = ""
 
-    while start < len(words):
+    for paragraph in paragraphs:
 
-        end = start + chunk_size
+        if len(current_chunk) + len(paragraph) < chunk_size:
 
-        chunk = " ".join(words[start:end])
+            current_chunk += paragraph + "\n"
 
-        chunks.append(chunk)
+        else:
 
-        start += chunk_size - overlap
+            chunks.append(current_chunk.strip())
+
+            overlap_text = current_chunk[-overlap:]
+
+            current_chunk = overlap_text + "\n" + paragraph
+
+    if current_chunk:
+
+        chunks.append(current_chunk.strip())
 
     return chunks

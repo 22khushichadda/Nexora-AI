@@ -1,4 +1,11 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Depends,
+    BackgroundTasks
+)
+
 from sqlalchemy.orm import Session
 
 import os
@@ -8,11 +15,8 @@ from app.database.database import get_db
 from app.database.models import Document
 from app.schemas.document import DocumentResponse
 
-from app.services.pdf_service import extract_text_from_pdf
-
-from app.rag.chunker import chunk_text
-from app.rag.embedding import create_embeddings
-from app.rag.vector_store import VectorStore
+from app.services.pdf_service import extract_pdf_data
+from app.services.background_indexer import build_document_index
 
 router = APIRouter(tags=["Documents"])
 
@@ -23,73 +27,154 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(INDEX_FOLDER, exist_ok=True)
 
 
-# -----------------------------
+# ======================================================
 # Upload Document
-# -----------------------------
+# ======================================================
+
 @router.post(
     "/documents/upload/{workspace_id}",
     response_model=DocumentResponse
 )
 def upload_document(
+
     workspace_id: int,
+
+    background_tasks: BackgroundTasks,
+
     file: UploadFile = File(...),
+
     db: Session = Depends(get_db)
+
 ):
 
     filepath = os.path.join(
+
         UPLOAD_FOLDER,
+
         file.filename
+
     )
 
     with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
 
-    extracted_text = extract_text_from_pdf(filepath)
+        shutil.copyfileobj(
+
+            file.file,
+
+            buffer
+
+        )
+
+    # ------------------------------------------
+    # Extract only metadata
+    # (Very Fast)
+    # ------------------------------------------
+
+    pdf = extract_pdf_data(filepath)
 
     document = Document(
+
         filename=file.filename,
+
         filepath=filepath,
+
         filetype=file.content_type,
-        content=extracted_text,
+
+        filesize=pdf["filesize"],
+
+        pages=pdf["pages"],
+
+        title=pdf["title"],
+
+        author=pdf["author"],
+
+        creator=pdf["creator"],
+
+        producer=pdf["producer"],
+
+        content="",
+
+        status="processing",
+
         workspace_id=workspace_id
+
     )
 
     db.add(document)
+
     db.commit()
+
     db.refresh(document)
 
-    chunks = chunk_text(extracted_text)
+    # ------------------------------------------
+    # Background Processing
+    # ------------------------------------------
 
-    embeddings = create_embeddings(chunks)
+    background_tasks.add_task(
 
-    vector_store = VectorStore()
+    build_document_index,
 
-    vector_store.build(
-        embeddings,
-        chunks
-    )
+    document.id
 
-    index_path = os.path.join(
-        INDEX_FOLDER,
-        f"workspace_{workspace_id}.index"
-    )
-
-    vector_store.save(index_path)
+)
 
     return document
 
 
-# -----------------------------
+# ======================================================
 # Get Documents
-# -----------------------------
+# ======================================================
+
 @router.get("/documents/{workspace_id}")
 def get_documents(
+
     workspace_id: int,
+
     db: Session = Depends(get_db)
+
 ):
 
     documents = db.query(Document).filter(
+
         Document.workspace_id == workspace_id
+
     ).all()
 
     return documents
+
+# ======================================================
+# Document Status
+# ======================================================
+
+@router.get("/documents/status/{workspace_id}")
+def document_status(
+
+    workspace_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    document = db.query(Document).filter(
+
+        Document.workspace_id == workspace_id
+
+    ).order_by(
+
+        Document.id.desc()
+
+    ).first()
+
+    if not document:
+
+        return {
+
+            "status": "no_document"
+
+        }
+
+    return {
+
+        "status": document.status
+
+    }

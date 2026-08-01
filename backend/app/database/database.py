@@ -1,27 +1,24 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 
-from app.database.config import DATABASE_URL
-from app.database.models import Base
-
-# Create Database Engine
 engine = create_engine(
-    DATABASE_URL,
-    echo=True
+    URL.create(
+        drivername="postgresql+psycopg2",
+        username="postgres",
+        password="Nexora@123",
+        host="localhost",
+        port=5432,
+        database="Nexora_ai",
+    )
 )
 
-# Session
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
 )
 
-# Create Tables Automatically
-Base.metadata.create_all(bind=engine)
-
-
-# Dependency
 def get_db():
     db = SessionLocal()
     try:

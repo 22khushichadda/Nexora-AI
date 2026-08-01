@@ -1,11 +1,9 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
-
 import { motion } from "framer-motion";
 
 import ChatBox from "../components/ChatBox";
 import RecentDocuments from "../components/RecentDocuments";
-import Bookmarks from "../components/Bookmarks";
 
 import "../styles/dashboard.css";
 
@@ -20,54 +18,30 @@ function Dashboard() {
                 <div className="dashboard-content">
 
                     <motion.div
-
                         className="hero-card"
-
                         initial={{
-
-                            opacity:0,
-
-                            scale:.92
-
+                            opacity: 0,
+                            scale: 0.92
                         }}
-
                         animate={{
-
-                            opacity:1,
-
-                            scale:1
-
+                            opacity: 1,
+                            scale: 1
                         }}
-
                         transition={{
-
-                            delay:.4,
-
-                            duration:.8
-
+                            delay: 0.4,
+                            duration: 0.8
                         }}
-
                     >
 
                         <div className="hero-left">
 
-                            <h1>
+                            <h1>NEXORA AI</h1>
 
-                                NEXORA AI
-
-                            </h1>
-
-                            <h2>
-
-                                AI-powered document assistant
-
-                            </h2>
+                            <h2>AI-powered document assistant</h2>
 
                             <p>
-
                                 Summarize, analyze, translate and extract
                                 insights from your documents using AI.
-
                             </p>
 
                         </div>
@@ -81,29 +55,17 @@ function Dashboard() {
                     </motion.div>
 
                     <motion.div
-
                         initial={{
-
-                            opacity:0,
-
-                            y:40
-
+                            opacity: 0,
+                            y: 40
                         }}
-
                         animate={{
-
-                            opacity:1,
-
-                            y:0
-
+                            opacity: 1,
+                            y: 0
                         }}
-
                         transition={{
-
-                            delay:.7
-
+                            delay: 0.7
                         }}
-
                     >
 
                         <ChatBox />
@@ -111,36 +73,21 @@ function Dashboard() {
                     </motion.div>
 
                     <motion.div
-
                         className="bottom-grid"
-
                         initial={{
-
-                            opacity:0,
-
-                            y:60
-
+                            opacity: 0,
+                            y: 60
                         }}
-
                         animate={{
-
-                            opacity:1,
-
-                            y:0
-
+                            opacity: 1,
+                            y: 0
                         }}
-
                         transition={{
-
-                            delay:1
-
+                            delay: 1
                         }}
-
                     >
 
                         <RecentDocuments />
-
-                        <Bookmarks />
 
                     </motion.div>
 

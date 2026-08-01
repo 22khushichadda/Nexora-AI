@@ -2,16 +2,16 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import Dashboard from "./pages/Dashboard";
+import App from "./App";
 import IntroScreen from "./components/IntroScreen";
 
 import "./styles/global.css";
 
-function App(){
+function Root() {
 
-    const [showDashboard,setShowDashboard]=React.useState(false);
+    const [showDashboard, setShowDashboard] = React.useState(false);
 
-    return(
+    return (
 
         <BrowserRouter>
 
@@ -19,19 +19,19 @@ function App(){
 
                 showDashboard ?
 
-                <Dashboard/>
+                    <App />
 
-                :
+                    :
 
-                <IntroScreen
+                    <IntroScreen
 
-                    onFinish={()=>
+                        onFinish={() =>
 
-                        setShowDashboard(true)
+                            setShowDashboard(true)
 
-                    }
+                        }
 
-                />
+                    />
 
             }
 
@@ -41,12 +41,16 @@ function App(){
 
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(
 
-<React.StrictMode>
+    document.getElementById("root")
 
-<App/>
+).render(
 
-</React.StrictMode>
+    <React.StrictMode>
+
+        <Root />
+
+    </React.StrictMode>
 
 );

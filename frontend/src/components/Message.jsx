@@ -1,6 +1,12 @@
+import ReactMarkdown from "react-markdown";
 import "../styles/message.css";
 
-function Message({ sender, text }) {
+function Message({ sender, text, sources }) {
+
+    const safeText =
+        typeof text === "string"
+            ? text
+            : JSON.stringify(text, null, 2);
 
     return (
 
@@ -14,7 +20,52 @@ function Message({ sender, text }) {
 
             <div className="bubble">
 
-                {text}
+                <ReactMarkdown>
+
+                    {safeText}
+
+                </ReactMarkdown>
+
+                {
+
+                    sender === "ai" &&
+                    Array.isArray(sources) &&
+                    sources.length > 0 && (
+
+                        <div className="sources">
+
+                            <h4>Sources</h4>
+
+                            {
+
+                                sources.map((source, index) => (
+
+                                    <div
+                                        key={index}
+                                        className="source-item"
+                                    >
+
+                                        📄 {
+
+                                            typeof source === "string"
+
+                                                ? source
+
+                                                : JSON.stringify(source)
+
+                                        }
+
+                                    </div>
+
+                                ))
+
+                            }
+
+                        </div>
+
+                    )
+
+                }
 
             </div>
 

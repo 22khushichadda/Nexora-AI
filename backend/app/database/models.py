@@ -11,21 +11,22 @@ class Base(DeclarativeBase):
 # ======================================================
 # Workspace Table
 # ======================================================
+
 class Workspace(Base):
+
     __tablename__ = "workspaces"
 
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String(255), nullable=False)
 
-    description = Column(String(500), nullable=True)
+    description = Column(String(500))
 
     created_at = Column(
         DateTime,
         default=datetime.utcnow
     )
 
-    # One Workspace can have multiple documents
     documents = relationship(
         "Document",
         back_populates="workspace",
@@ -36,38 +37,131 @@ class Workspace(Base):
 # ======================================================
 # Documents Table
 # ======================================================
+
 class Document(Base):
+
     __tablename__ = "documents"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # Original file name
+    # ------------------------
+    # Basic Information
+    # ------------------------
+
     filename = Column(String(255), nullable=False)
 
-    # Path where the file is stored
     filepath = Column(String(500), nullable=False)
 
-    # MIME type (application/pdf, etc.)
     filetype = Column(String(100))
 
-    # Extracted text from the PDF
+    filesize = Column(Integer)
+
+    # ------------------------
+    # PDF Metadata
+    # ------------------------
+
+    pages = Column(Integer)
+
+    title = Column(String(255))
+
+    author = Column(String(255))
+
+    creator = Column(String(255))
+
+    producer = Column(String(255))
+
+    # ------------------------
+    # Extracted Content
+    # ------------------------
+
     content = Column(String)
 
-    # Upload timestamp
+    # ------------------------
+    # Processing Status
+    # ------------------------
+
+    status = Column(
+        String(20),
+        default="processing"
+    )
+
     uploaded_at = Column(
         DateTime,
         default=datetime.utcnow
     )
 
-    # Foreign key to Workspace
+    # ------------------------
+    # Workspace Relation
+    # ------------------------
+
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id"),
         nullable=False
     )
 
-    # Relationship with Workspace
     workspace = relationship(
         "Workspace",
         back_populates="documents"
+    )
+
+
+# ======================================================
+# Conversation Table
+# ======================================================
+
+class Conversation(Base):
+
+    __tablename__ = "conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id"),
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    messages = relationship(
+        "Message",
+        back_populates="conversation",
+        cascade="all, delete-orphan"
+    )
+
+
+# ======================================================
+# Message Table
+# ======================================================
+
+class Message(Base):
+
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    conversation_id = Column(
+        Integer,
+        ForeignKey("conversations.id"),
+        nullable=False
+    )
+
+    role = Column(
+        String(20)
+    )
+
+    content = Column(String)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    conversation = relationship(
+        "Conversation",
+        back_populates="messages"
     )

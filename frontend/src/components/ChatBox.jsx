@@ -1,9 +1,13 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, ArrowUp, FileText, X } from "lucide-react";
 
 import Message from "./Message";
 
-import { uploadDocument, askAI } from "../services/api";
+import {
+    uploadDocument,
+    askAI,
+    getDocumentStatus
+} from "../services/api";
 
 import "../styles/chat.css";
 
@@ -19,9 +23,65 @@ function ChatBox() {
 
     const [messages, setMessages] = useState([]);
 
-    // -----------------------------
+    const [processing, setProcessing] = useState(false);
+
+    const [documentReady, setDocumentReady] = useState(false);
+
+    // -----------------------------------
+    // Check Document Status
+    // -----------------------------------
+
+    useEffect(() => {
+
+        if (!processing) return;
+
+        const interval = setInterval(async () => {
+
+            try {
+
+                const response = await getDocumentStatus();
+
+                if (response.status === "ready") {
+
+                    setProcessing(false);
+
+                    setDocumentReady(true);
+
+                    setMessages(prev => [
+
+                        ...prev,
+
+                        {
+
+                            sender: "ai",
+
+                            text: "✅ Document indexed successfully.\n\nNexora AI is ready."
+
+                        }
+
+                    ]);
+
+                    clearInterval(interval);
+
+                }
+
+            }
+
+            catch (err) {
+
+                console.log(err);
+
+            }
+
+        }, 2000);
+
+        return () => clearInterval(interval);
+
+    }, [processing]);
+
+    // -----------------------------------
     // Upload PDF
-    // -----------------------------
+    // -----------------------------------
 
     const handleUpload = async (e) => {
 
@@ -37,7 +97,11 @@ function ChatBox() {
 
             setUploadedFile(file.name);
 
-            setMessages((prev) => [
+            setProcessing(true);
+
+            setDocumentReady(false);
+
+            setMessages(prev => [
 
                 ...prev,
 
@@ -45,7 +109,8 @@ function ChatBox() {
 
                     sender: "ai",
 
-                    text: `"${file.name}" uploaded successfully. You can now ask me anything about this document.`
+                    text:
+                        `📄 "${file.name}" uploaded successfully.\n\n🧠 Nexora AI is analysing your document...`
 
                 }
 
@@ -55,7 +120,7 @@ function ChatBox() {
 
         catch (err) {
 
-            setMessages((prev) => [
+            setMessages(prev => [
 
                 ...prev,
 
@@ -69,7 +134,7 @@ function ChatBox() {
 
                         err.message ||
 
-                        "Upload failed."
+                        "Upload Failed."
 
                 }
 
@@ -85,17 +150,41 @@ function ChatBox() {
 
     };
 
-    // -----------------------------
+    // -----------------------------------
     // Ask AI
-    // -----------------------------
+    // -----------------------------------
 
     const handleAsk = async () => {
 
         if (!question.trim()) return;
 
+        if (!documentReady) {
+
+            setMessages(prev => [
+
+                ...prev,
+
+                {
+
+                    sender: "ai",
+
+                    text:
+
+                        "🧠 Your document is still being processed.\n\nPlease wait a few seconds."
+
+                }
+
+            ]);
+
+            return;
+
+        }
+
         const currentQuestion = question;
 
-        setMessages((prev) => [
+        setQuestion("");
+
+        setMessages(prev => [
 
             ...prev,
 
@@ -109,15 +198,13 @@ function ChatBox() {
 
         ]);
 
-        setQuestion("");
-
         try {
 
             setLoading(true);
 
             const response = await askAI(currentQuestion);
 
-            setMessages((prev) => [
+            setMessages(prev => [
 
                 ...prev,
 
@@ -125,7 +212,9 @@ function ChatBox() {
 
                     sender: "ai",
 
-                    text: response.answer
+                    text: response.answer,
+
+                    sources: response.sources || []
 
                 }
 
@@ -135,7 +224,7 @@ function ChatBox() {
 
         catch (err) {
 
-            setMessages((prev) => [
+            setMessages(prev => [
 
                 ...prev,
 
@@ -185,8 +274,6 @@ function ChatBox() {
 
             <div className={`chat-wrapper ${uploadedFile ? "has-file" : ""}`}>
 
-                {/* Chat History */}
-
                 {
 
                     messages.length > 0 &&
@@ -205,6 +292,8 @@ function ChatBox() {
 
                                     text={msg.text}
 
+                                    sources={msg.sources}
+
                                 />
 
                             ))
@@ -214,8 +303,6 @@ function ChatBox() {
                     </div>
 
                 }
-
-                {/* Attached PDF */}
 
                 {
 
@@ -239,7 +326,17 @@ function ChatBox() {
 
                             className="remove-file"
 
-                            onClick={() => setUploadedFile(null)}
+                            onClick={() => {
+
+                                setUploadedFile(null);
+
+                                setDocumentReady(false);
+
+                                setProcessing(false);
+
+                                fileInput.current.value = "";
+
+                            }}
 
                         >
 
@@ -250,8 +347,6 @@ function ChatBox() {
                     </div>
 
                 }
-
-                {/* Chat Input */}
 
                 <div className="chat-box">
 
@@ -271,7 +366,17 @@ function ChatBox() {
 
                         value={question}
 
-                        placeholder="Ask anything about your document..."
+                        placeholder={
+
+                            processing
+
+                                ? "Document is processing..."
+
+                                : "Ask anything about your document..."
+
+                        }
+
+                        disabled={processing}
 
                         onChange={(e) =>
 
@@ -297,7 +402,7 @@ function ChatBox() {
 
                         onClick={handleAsk}
 
-                        disabled={loading}
+                        disabled={loading || processing}
 
                     >
 

@@ -1,50 +1,82 @@
 import os
+
 import google.generativeai as genai
+
 from dotenv import load_dotenv
+
+from app.services.prompt_builder import get_prompt_style
 
 load_dotenv()
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in .env file")
-
 genai.configure(api_key=API_KEY)
 
-model = genai.GenerativeModel("gemini-flash-latest")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 
-def ask_gemini(document: str, question: str):
+def ask_gemini(context, question):
+
+    style = get_prompt_style(question)
 
     prompt = f"""
+
 You are Nexora AI.
 
-You are a research assistant.
+You are an expert research assistant.
 
-Answer ONLY using the document below.
+STRICT RULES
 
-If the answer is not present,
-reply exactly:
+1.
+
+Answer ONLY using the uploaded document.
+
+2.
+
+Never invent information.
+
+3.
+
+If information is unavailable say
 
 "I couldn't find that information in the uploaded document."
 
--------------------------
+4.
 
-DOCUMENT
+Always follow the formatting requested.
 
-{document}
+--------------------------------
 
--------------------------
+Formatting
 
-QUESTION
+{style}
+
+--------------------------------
+
+Document
+
+{context}
+
+--------------------------------
+
+Question
 
 {question}
 
 """
 
     try:
+
         response = model.generate_content(prompt)
+
         return response.text
 
-    except Exception as e:
-        return f"Gemini Error: {str(e)}"
+    except Exception:
+
+        return (
+
+            "AI service is currently busy.\n"
+
+            "Please wait a few seconds and try again."
+
+        )

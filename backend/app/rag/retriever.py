@@ -10,13 +10,13 @@ class Retriever:
 
         self.store.load(index_path)
 
-    def retrieve(self, question, k=5):
+    def retrieve(self, question, k=8):
 
-        query_embedding = create_embeddings(
-            [question]
-        )[0]
+        query_embedding = create_embeddings([question])[0]
 
-        return self.store.search(
+        results = self.store.search(
             query_embedding,
             k
         )
+
+        return results

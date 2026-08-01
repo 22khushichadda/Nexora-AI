@@ -6,7 +6,7 @@ const API = axios.create({
 
 });
 
-export const WORKSPACE_ID = 3;
+export const WORKSPACE_ID = 7;
 
 
 // ----------------------
@@ -15,29 +15,63 @@ export const WORKSPACE_ID = 3;
 
 export const uploadDocument = async (file) => {
 
+    console.log("========== UPLOAD DEBUG ==========");
+    console.log("WORKSPACE_ID:", WORKSPACE_ID);
+    console.log("FILE:", file);
+    console.log("FILE TYPE:", typeof file);
+    console.log("UPLOAD URL:", `/documents/upload/${WORKSPACE_ID}`);
+
     const formData = new FormData();
 
     formData.append("file", file);
 
-    const response = await API.post(
+    for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+    }
 
-        `/documents/upload/${WORKSPACE_ID}`,
+    try {
 
-        formData,
+        const response = await API.post(
 
-        {
+            `/documents/upload/${WORKSPACE_ID}`,
 
-            headers: {
+            formData,
 
-                "Content-Type": "multipart/form-data"
+            {
+
+                headers: {
+
+                    "Content-Type": "multipart/form-data"
+
+                }
 
             }
 
+        );
+
+        console.log("UPLOAD SUCCESS");
+        console.log(response.data);
+
+        return response.data;
+
+    }
+
+    catch (error) {
+
+        console.log("UPLOAD FAILED");
+
+        console.log(error);
+
+        if (error.response) {
+
+            console.log("STATUS:", error.response.status);
+            console.log("DATA:", error.response.data);
+
         }
 
-    );
+        throw error;
 
-    return response.data;
+    }
 
 };
 
@@ -47,6 +81,9 @@ export const uploadDocument = async (file) => {
 // ----------------------
 
 export const getDocuments = async () => {
+
+    console.log("Fetching documents...");
+    console.log("Workspace:", WORKSPACE_ID);
 
     const response = await API.get(
 
@@ -60,10 +97,29 @@ export const getDocuments = async () => {
 
 
 // ----------------------
+// Check Processing Status
+// ----------------------
+
+export const getDocumentStatus = async () => {
+
+    const response = await API.get(
+
+        `/documents/status/${WORKSPACE_ID}`
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
 // Ask AI
 // ----------------------
 
 export const askAI = async (question) => {
+
+    console.log("Question:", question);
 
     const response = await API.post(
 

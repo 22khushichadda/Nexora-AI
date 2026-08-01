@@ -43,11 +43,9 @@ function Sidebar() {
 
                     <button>Documents</button>
 
-                    <button>AI Chat</button>
+                    <button>Bookmarks</button>
 
                     <button>History</button>
-
-                    <button>Settings</button>
 
                 </div>
 
