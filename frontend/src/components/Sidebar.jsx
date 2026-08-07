@@ -1,7 +1,29 @@
 import { motion } from "framer-motion";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import {
+    LayoutDashboard,
+    FileText,
+    Bookmark,
+    History,
+    Plus
+} from "lucide-react";
+
 import "../styles/sidebar.css";
 
 function Sidebar() {
+
+    const navigate = useNavigate();
+
+    const handleNewChat = () => {
+
+        navigate("/dashboard");
+
+        // Clear previous chat temporarily
+        // Later we'll connect this to ChatBox
+        window.location.reload();
+
+    };
 
     return (
 
@@ -25,6 +47,8 @@ function Sidebar() {
 
             <div>
 
+                {/* ---------------- Logo ---------------- */}
+
                 <div className="logo-area">
 
                     <div className="logo-icon">
@@ -37,25 +61,101 @@ function Sidebar() {
 
                 </div>
 
+                {/* ---------------- Menu ---------------- */}
+
                 <div className="menu">
 
-                    <button>Dashboard</button>
+                    <NavLink
 
-                    <button>Documents</button>
+                        to="/dashboard"
 
-                    <button>Bookmarks</button>
+                        className={({ isActive }) =>
 
-                    <button>History</button>
+                            isActive ? "menu-link active" : "menu-link"
+
+                        }
+
+                    >
+
+                        <LayoutDashboard size={20} />
+
+                        Dashboard
+
+                    </NavLink>
+
+                    <NavLink
+
+                        to="/documents"
+
+                        className={({ isActive }) =>
+
+                            isActive ? "menu-link active" : "menu-link"
+
+                        }
+
+                    >
+
+                        <FileText size={20} />
+
+                        Documents
+
+                    </NavLink>
+
+                    <NavLink
+
+                        to="/bookmarks"
+
+                        className={({ isActive }) =>
+
+                            isActive ? "menu-link active" : "menu-link"
+
+                        }
+
+                    >
+
+                        <Bookmark size={20} />
+
+                        Bookmarks
+
+                    </NavLink>
+
+                    <NavLink
+
+                        to="/history"
+
+                        className={({ isActive }) =>
+
+                            isActive ? "menu-link active" : "menu-link"
+
+                        }
+
+                    >
+
+                        <History size={20} />
+
+                        History
+
+                    </NavLink>
 
                 </div>
 
             </div>
 
+            {/* ---------------- Bottom ---------------- */}
+
             <div className="bottom">
 
-                <button className="primary-btn">
+                <button
 
-                    + New Chat
+                    className="primary-btn"
+
+                    onClick={handleNewChat}
+
+                >
+
+                    <Plus size={18} />
+
+                    New Chat
 
                 </button>
 

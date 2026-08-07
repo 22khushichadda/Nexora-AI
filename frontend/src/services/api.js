@@ -16,9 +16,13 @@ export const WORKSPACE_ID = 7;
 export const uploadDocument = async (file) => {
 
     console.log("========== UPLOAD DEBUG ==========");
+
     console.log("WORKSPACE_ID:", WORKSPACE_ID);
+
     console.log("FILE:", file);
+
     console.log("FILE TYPE:", typeof file);
+
     console.log("UPLOAD URL:", `/documents/upload/${WORKSPACE_ID}`);
 
     const formData = new FormData();
@@ -26,7 +30,9 @@ export const uploadDocument = async (file) => {
     formData.append("file", file);
 
     for (let pair of formData.entries()) {
+
         console.log(pair[0], pair[1]);
+
     }
 
     try {
@@ -50,6 +56,7 @@ export const uploadDocument = async (file) => {
         );
 
         console.log("UPLOAD SUCCESS");
+
         console.log(response.data);
 
         return response.data;
@@ -65,6 +72,7 @@ export const uploadDocument = async (file) => {
         if (error.response) {
 
             console.log("STATUS:", error.response.status);
+
             console.log("DATA:", error.response.data);
 
         }
@@ -83,11 +91,28 @@ export const uploadDocument = async (file) => {
 export const getDocuments = async () => {
 
     console.log("Fetching documents...");
+
     console.log("Workspace:", WORKSPACE_ID);
 
     const response = await API.get(
 
         `/documents/${WORKSPACE_ID}`
+
+    );
+
+    return response.data;
+
+};
+
+// ----------------------
+// Get Chat History
+// ----------------------
+
+export const getHistory = async () => {
+
+    const response = await API.get(
+
+        `/chat/history/${WORKSPACE_ID}`
 
     );
 
@@ -117,9 +142,17 @@ export const getDocumentStatus = async () => {
 // Ask AI
 // ----------------------
 
-export const askAI = async (question) => {
+export const askAI = async (
+
+    question,
+
+    conversationId = null
+
+) => {
 
     console.log("Question:", question);
+
+    console.log("Conversation:", conversationId);
 
     const response = await API.post(
 
@@ -129,7 +162,9 @@ export const askAI = async (question) => {
 
             workspace_id: WORKSPACE_ID,
 
-            question
+            question: question,
+
+            conversation_id: conversationId
 
         }
 
@@ -139,4 +174,77 @@ export const askAI = async (question) => {
 
 };
 
+
+// ----------------------
+// Create New Conversation
+// ----------------------
+
+export const createNewConversation = async () => {
+
+    const response = await API.post(
+
+        "/chat/new",
+
+        {
+
+            workspace_id: WORKSPACE_ID
+
+        }
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
+// Get Conversation History
+// ----------------------
+
+export const getConversationHistory = async () => {
+
+    const response = await API.get(
+
+        `/chat/history/${WORKSPACE_ID}`
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
+// Get Latest Conversation
+// ----------------------
+
+export const getLatestConversation = async () => {
+
+    const response = await API.get(
+
+        `/chat/latest/${WORKSPACE_ID}`
+
+    );
+
+    return response.data;
+
+};
+
+
 export default API;
+// ----------------------
+// Get One Conversation
+// ----------------------
+
+export const getConversation = async (conversationId) => {
+
+    const response = await API.get(
+
+        `/chat/conversation/${conversationId}`
+
+    );
+
+    return response.data;
+
+};

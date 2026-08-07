@@ -1,40 +1,44 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
 import BookmarksPage from "./pages/BookmarksPage";
 import HistoryPage from "./pages/HistoryPage";
+import PdfViewer from "./pages/PdfViewer";
 
 function App() {
+  return (
+    <Routes>
 
-    return (
+      <Route path="/" element={<Navigate to="/dashboard" />} />
 
-        <Routes>
+      <Route
+        path="/dashboard"
+        element={<Dashboard />}
+      />
 
-            <Route
-                path="/"
-                element={<Dashboard />}
-            />
+      <Route
+        path="/documents"
+        element={<Documents />}
+      />
 
-            <Route
-                path="/documents"
-                element={<Documents />}
-            />
+      <Route
+        path="/bookmarks"
+        element={<BookmarksPage />}
+      />
 
-            <Route
-                path="/bookmarks"
-                element={<BookmarksPage />}
-            />
+      <Route
+        path="/history"
+        element={<HistoryPage />}
+      />
 
-            <Route
-                path="/history"
-                element={<HistoryPage />}
-            />
+      <Route
+        path="/viewer/:id"
+        element={<PdfViewer />}
+      />
 
-        </Routes>
-
-    );
-
+    </Routes>
+  );
 }
 
 export default App;

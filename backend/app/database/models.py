@@ -27,8 +27,18 @@ class Workspace(Base):
         default=datetime.utcnow
     )
 
+    # ------------------------
+    # Relationships
+    # ------------------------
+
     documents = relationship(
         "Document",
+        back_populates="workspace",
+        cascade="all, delete-orphan"
+    )
+
+    conversations = relationship(
+        "Conversation",
         back_populates="workspace",
         cascade="all, delete-orphan"
     )
@@ -44,10 +54,6 @@ class Document(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # ------------------------
-    # Basic Information
-    # ------------------------
-
     filename = Column(String(255), nullable=False)
 
     filepath = Column(String(500), nullable=False)
@@ -55,10 +61,6 @@ class Document(Base):
     filetype = Column(String(100))
 
     filesize = Column(Integer)
-
-    # ------------------------
-    # PDF Metadata
-    # ------------------------
 
     pages = Column(Integer)
 
@@ -70,15 +72,7 @@ class Document(Base):
 
     producer = Column(String(255))
 
-    # ------------------------
-    # Extracted Content
-    # ------------------------
-
     content = Column(String)
-
-    # ------------------------
-    # Processing Status
-    # ------------------------
 
     status = Column(
         String(20),
@@ -89,10 +83,6 @@ class Document(Base):
         DateTime,
         default=datetime.utcnow
     )
-
-    # ------------------------
-    # Workspace Relation
-    # ------------------------
 
     workspace_id = Column(
         Integer,
@@ -114,12 +104,33 @@ class Conversation(Base):
 
     __tablename__ = "conversations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id"),
         nullable=False
+    )
+
+    workspace = relationship(
+        "Workspace",
+        back_populates="conversations"
+    )
+
+    # First question becomes history title
+    title = Column(
+        String(255),
+        nullable=True
+    )
+
+    # Active conversation
+    is_active = Column(
+        Integer,
+        default=1
     )
 
     created_at = Column(
@@ -142,7 +153,11 @@ class Message(Base):
 
     __tablename__ = "messages"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     conversation_id = Column(
         Integer,
@@ -154,7 +169,9 @@ class Message(Base):
         String(20)
     )
 
-    content = Column(String)
+    content = Column(
+        String
+    )
 
     created_at = Column(
         DateTime,
@@ -164,4 +181,40 @@ class Message(Base):
     conversation = relationship(
         "Conversation",
         back_populates="messages"
+    )
+
+
+# ======================================================
+# Bookmark Table
+# ======================================================
+
+class Bookmark(Base):
+
+    __tablename__ = "bookmarks"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id"),
+        nullable=False
+    )
+
+    question = Column(
+        String,
+        nullable=False
+    )
+
+    answer = Column(
+        String,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
     )

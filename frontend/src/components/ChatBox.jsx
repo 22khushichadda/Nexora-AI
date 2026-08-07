@@ -4,14 +4,17 @@ import { Plus, ArrowUp, FileText, X } from "lucide-react";
 import Message from "./Message";
 
 import {
+
     uploadDocument,
     askAI,
-    getDocumentStatus
+    getDocumentStatus,
+    getDocuments
+
 } from "../services/api";
 
 import "../styles/chat.css";
 
-function ChatBox() {
+function ChatBox({ conversation }) {
 
     const fileInput = useRef();
 
@@ -27,9 +30,62 @@ function ChatBox() {
 
     const [documentReady, setDocumentReady] = useState(false);
 
-    // -----------------------------------
-    // Check Document Status
-    // -----------------------------------
+    const [conversationId, setConversationId] = useState(null);
+
+    // -----------------------------
+    // Load Dashboard
+    // -----------------------------
+
+   useEffect(() => {
+
+    loadLatestDocument();
+
+    if (conversation && messages.length === 0) {
+
+        setConversationId(conversation.conversation_id);
+
+        setMessages(conversation.messages || []);
+
+        setDocumentReady(true);
+
+    }
+
+}, [conversation]);
+    // -----------------------------
+    // Load Latest Uploaded Document
+    // -----------------------------
+
+    const loadLatestDocument = async () => {
+
+        try {
+
+            const docs = await getDocuments();
+
+            if (docs.length > 0) {
+
+                const latest = docs[docs.length - 1];
+
+                setUploadedFile(latest.filename);
+
+                setDocumentReady(true);
+
+            }
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
+
+    
+
+    // -----------------------------
+    // Check Processing Status
+    // -----------------------------
 
     useEffect(() => {
 
@@ -47,6 +103,8 @@ function ChatBox() {
 
                     setDocumentReady(true);
 
+                    await loadLatestDocument();
+
                     setMessages(prev => [
 
                         ...prev,
@@ -55,7 +113,8 @@ function ChatBox() {
 
                             sender: "ai",
 
-                            text: "✅ Document indexed successfully.\n\nNexora AI is ready."
+                            text:
+                                "✅ Document indexed successfully.\n\nNexora AI is ready."
 
                         }
 
@@ -79,110 +138,30 @@ function ChatBox() {
 
     }, [processing]);
 
-    // -----------------------------------
+    // -----------------------------
     // Upload PDF
-    // -----------------------------------
+    // -----------------------------
+    // -----------------------------
+// Upload PDF
+// -----------------------------
 
-    const handleUpload = async (e) => {
+const handleUpload = async (e) => {
 
-        const file = e.target.files[0];
+    const file = e.target.files[0];
 
-        if (!file) return;
+    if (!file) return;
 
-        try {
+    try {
 
-            setLoading(true);
+        setLoading(true);
 
-            await uploadDocument(file);
+        await uploadDocument(file);
 
-            setUploadedFile(file.name);
+        setUploadedFile(file.name);
 
-            setProcessing(true);
+        setProcessing(true);
 
-            setDocumentReady(false);
-
-            setMessages(prev => [
-
-                ...prev,
-
-                {
-
-                    sender: "ai",
-
-                    text:
-                        `📄 "${file.name}" uploaded successfully.\n\n🧠 Nexora AI is analysing your document...`
-
-                }
-
-            ]);
-
-        }
-
-        catch (err) {
-
-            setMessages(prev => [
-
-                ...prev,
-
-                {
-
-                    sender: "ai",
-
-                    text:
-
-                        err.response?.data?.detail ||
-
-                        err.message ||
-
-                        "Upload Failed."
-
-                }
-
-            ]);
-
-        }
-
-        finally {
-
-            setLoading(false);
-
-        }
-
-    };
-
-    // -----------------------------------
-    // Ask AI
-    // -----------------------------------
-
-    const handleAsk = async () => {
-
-        if (!question.trim()) return;
-
-        if (!documentReady) {
-
-            setMessages(prev => [
-
-                ...prev,
-
-                {
-
-                    sender: "ai",
-
-                    text:
-
-                        "🧠 Your document is still being processed.\n\nPlease wait a few seconds."
-
-                }
-
-            ]);
-
-            return;
-
-        }
-
-        const currentQuestion = question;
-
-        setQuestion("");
+        setDocumentReady(false);
 
         setMessages(prev => [
 
@@ -190,233 +169,332 @@ function ChatBox() {
 
             {
 
-                sender: "user",
+                sender: "ai",
 
-                text: currentQuestion
+                text: `📄 "${file.name}" uploaded successfully.\n\n🧠 Nexora AI is analysing your document...`
 
             }
 
         ]);
 
-        try {
+    }
 
-            setLoading(true);
+    catch (err) {
 
-            const response = await askAI(currentQuestion);
+        setMessages(prev => [
 
-            setMessages(prev => [
+            ...prev,
 
-                ...prev,
+            {
 
-                {
+                sender: "ai",
 
-                    sender: "ai",
+                text:
 
-                    text: response.answer,
+                    err.response?.data?.detail ||
 
-                    sources: response.sources || []
+                    err.message ||
 
-                }
+                    "Upload Failed."
 
-            ]);
+            }
+
+        ]);
+
+    }
+
+    finally {
+
+        setLoading(false);
+
+    }
+
+};
+
+
+// -----------------------------
+// Ask AI
+// -----------------------------
+
+const handleAsk = async () => {
+
+    if (!question.trim()) return;
+
+    if (!documentReady) {
+
+        setMessages(prev => [
+
+            ...prev,
+
+            {
+
+                sender: "ai",
+
+                text:
+                    "🧠 Your document is still being processed.\n\nPlease wait a few seconds."
+
+            }
+
+        ]);
+
+        return;
+
+    }
+
+    const currentQuestion = question;
+
+    setQuestion("");
+
+    setMessages(prev => [
+
+        ...prev,
+
+        {
+
+            sender: "user",
+
+            text: currentQuestion
 
         }
 
-        catch (err) {
+    ]);
 
-            setMessages(prev => [
+    try {
 
-                ...prev,
+        setLoading(true);
 
-                {
+        const response = await askAI(
 
-                    sender: "ai",
+            currentQuestion,
 
-                    text:
+            conversationId
 
-                        err.response?.data?.detail ||
+        );
 
-                        err.message ||
+        if (response?.conversation_id !== undefined) {
 
-                        "Something went wrong."
+            setConversationId(
 
-                }
+                response.conversation_id
 
-            ]);
-
-        }
-
-        finally {
-
-            setLoading(false);
+            );
 
         }
 
-    };
+        setMessages(prev => [
 
-    return (
+            ...prev,
 
-        <>
+            {
 
-            <input
+                sender: "ai",
 
-                hidden
+                text: response.answer,
 
-                type="file"
+                sources: response.sources || []
 
-                accept=".pdf"
+            }
 
-                ref={fileInput}
+        ]);
 
-                onChange={handleUpload}
+    }
 
-            />
+    catch (err) {
 
-            <div className={`chat-wrapper ${uploadedFile ? "has-file" : ""}`}>
+        setMessages(prev => [
 
-                {
+            ...prev,
 
-                    messages.length > 0 &&
+            {
 
-                    <div className="chat-history">
+                sender: "ai",
 
-                        {
+                text:
 
-                            messages.map((msg, index) => (
+                    err.response?.data?.detail ||
 
-                                <Message
+                    err.message ||
 
-                                    key={index}
+                    "Something went wrong."
 
-                                    sender={msg.sender}
+            }
 
-                                    text={msg.text}
+        ]);
 
-                                    sources={msg.sources}
+    }
 
-                                />
+    finally {
 
-                            ))
+        setLoading(false);
 
-                        }
+    }
+
+};
+
+
+return (
+
+    <>
+
+        <input
+
+            hidden
+
+            type="file"
+
+            accept=".pdf"
+
+            ref={fileInput}
+
+            onChange={handleUpload}
+
+        />
+
+        <div className={`chat-wrapper ${uploadedFile ? "has-file" : ""}`}>
+
+            {
+
+                messages.length > 0 &&
+
+                <div className="chat-history">
+
+                    {
+
+                        messages.map((msg, index) => (
+
+                            <Message
+
+                                key={index}
+
+                                sender={msg.sender}
+
+                                text={msg.text}
+
+                                sources={msg.sources}
+
+                            />
+
+                        ))
+
+                    }
+
+                </div>
+
+            }
+
+            {
+
+                uploadedFile &&
+
+                <div className="attached-file">
+
+                    <div className="file-left">
+
+                        <FileText size={20} />
+
+                        <span>
+
+                            {uploadedFile}
+
+                        </span>
 
                     </div>
-
-                }
-
-                {
-
-                    uploadedFile &&
-
-                    <div className="attached-file">
-
-                        <div className="file-left">
-
-                            <FileText size={20} />
-
-                            <span>
-
-                                {uploadedFile}
-
-                            </span>
-
-                        </div>
-
-                        <button
-
-                            className="remove-file"
-
-                            onClick={() => {
-
-                                setUploadedFile(null);
-
-                                setDocumentReady(false);
-
-                                setProcessing(false);
-
-                                fileInput.current.value = "";
-
-                            }}
-
-                        >
-
-                            <X size={18} />
-
-                        </button>
-
-                    </div>
-
-                }
-
-                <div className="chat-box">
 
                     <button
 
-                        className="plus-btn"
+                        className="remove-file"
 
-                        onClick={() => fileInput.current.click()}
+                        onClick={() => {
 
-                    >
+                            setUploadedFile(null);
 
-                        <Plus size={20} />
+                            setDocumentReady(false);
 
-                    </button>
+                            setProcessing(false);
 
-                    <input
-
-                        value={question}
-
-                        placeholder={
-
-                            processing
-
-                                ? "Document is processing..."
-
-                                : "Ask anything about your document..."
-
-                        }
-
-                        disabled={processing}
-
-                        onChange={(e) =>
-
-                            setQuestion(e.target.value)
-
-                        }
-
-                        onKeyDown={(e) => {
-
-                            if (e.key === "Enter") {
-
-                                handleAsk();
-
-                            }
+                            fileInput.current.value = "";
 
                         }}
 
-                    />
-
-                    <button
-
-                        className="send-btn"
-
-                        onClick={handleAsk}
-
-                        disabled={loading || processing}
-
                     >
 
-                        <ArrowUp size={18} />
+                        <X size={18} />
 
                     </button>
 
                 </div>
 
+            }
+
+            <div className="chat-box">
+
+                <button
+
+                    className="plus-btn"
+
+                    onClick={() => fileInput.current.click()}
+
+                >
+
+                    <Plus size={20} />
+
+                </button>
+
+                <input
+
+                    value={question}
+
+                    placeholder={
+
+                        processing
+
+                            ? "Document is processing..."
+
+                            : "Ask anything about your document..."
+
+                    }
+
+                    disabled={processing}
+
+                    onChange={(e) =>
+
+                        setQuestion(e.target.value)
+
+                    }
+
+                    onKeyDown={(e) => {
+
+                        if (e.key === "Enter") {
+
+                            handleAsk();
+
+                        }
+
+                    }}
+
+                />
+
+                <button
+
+                    className="send-btn"
+
+                    onClick={handleAsk}
+
+                    disabled={loading || processing}
+
+                >
+
+                    <ArrowUp size={18} />
+
+                </button>
+
             </div>
 
-        </>
+        </div>
 
-    );
+    </>
+
+);
 
 }
 

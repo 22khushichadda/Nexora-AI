@@ -1,12 +1,10 @@
 .sidebar{
 
-    width:250px;
+    width:270px;
 
     height:100vh;
 
     background:#090b13;
-
-    border-right:1px solid rgba(255,255,255,.06);
 
     display:flex;
 
@@ -14,63 +12,51 @@
 
     justify-content:space-between;
 
-    padding:22px;
+    padding:28px;
+
+    border-right:1px solid #20263a;
 
 }
 
-.logo-box{
+.logo-area{
 
     display:flex;
 
     align-items:center;
 
-    gap:14px;
+    gap:15px;
+
+    margin-bottom:45px;
 
 }
 
 .logo-icon{
 
-    width:42px;
+    width:46px;
 
-    height:42px;
+    height:46px;
 
     border-radius:14px;
 
-    background:linear-gradient(135deg,#7b3ff2,#24c6ff);
+    background:linear-gradient(135deg,#8b3dff,#2ec5ff);
 
     display:flex;
 
-    justify-content:center;
-
     align-items:center;
 
-    color:white;
-
-    font-size:24px;
-
-    font-weight:700;
-
-}
-
-.logo-box h2{
+    justify-content:center;
 
     color:white;
 
-    font-size:30px;
+    font-weight:bold;
 
-    font-weight:700;
-
-    letter-spacing:1px;
+    font-size:22px;
 
 }
 
-.divider{
+.logo-area h1{
 
-    height:1px;
-
-    background:rgba(255,255,255,.06);
-
-    margin:24px 0;
+    color:white;
 
 }
 
@@ -80,11 +66,11 @@
 
     flex-direction:column;
 
-    gap:12px;
+    gap:10px;
 
 }
 
-.menu button{
+.menu-link{
 
     display:flex;
 
@@ -92,73 +78,75 @@
 
     gap:14px;
 
-    width:100%;
+    padding:14px 16px;
 
-    border:none;
+    color:#b8c0d4;
 
-    background:transparent;
+    text-decoration:none;
 
-    color:#b8bfd1;
+    border-radius:12px;
 
-    padding:14px 18px;
-
-    border-radius:16px;
-
-    cursor:pointer;
-
-    font-size:15px;
-
-    transition:.25s;
-
-}
-
-.menu button:hover{
-
-    background:#171b27;
-
-    color:white;
-
-}
-
-.menu .active{
-
-    background:linear-gradient(90deg,#2d184d,#28163f);
-
-    color:white;
-
-}
-
-.new-chat-btn{
-
-    width:100%;
-
-    height:50px;
-
-    border:none;
-
-    border-radius:14px;
-
-    background:linear-gradient(90deg,#8b3dff,#2dc4ff);
-
-    color:white;
+    transition:.3s;
 
     font-size:16px;
 
-    display:flex;
+}
 
-    justify-content:center;
+.menu-link:hover{
 
-    align-items:center;
+    background:#171d2d;
 
-    gap:10px;
-
-    cursor:pointer;
-
-    transition:.25s;
+    color:white;
 
 }
 
-.new-chat-btn:hover{
+.menu-link.active{
+
+    background:linear-gradient(90deg,#8b3dff33,#2ec5ff22);
+
+    color:white;
+
+}
+
+.bottom{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.primary-btn{
+
+    border:none;
+
+    background:linear-gradient(135deg,#8b3dff,#2ec5ff);
+
+    color:white;
+
+    padding:14px;
+
+    border-radius:14px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:600;
+
+}
+
+.primary-btn:hover{
 
     transform:translateY(-2px);
 
@@ -166,21 +154,17 @@
 
 .user-card{
 
-    margin-top:18px;
-
-    background:#111520;
-
-    border-radius:14px;
-
-    padding:12px;
-
     display:flex;
 
     align-items:center;
 
-    gap:12px;
+    gap:14px;
 
-    color:white;
+    background:#151927;
+
+    border-radius:14px;
+
+    padding:14px;
 
 }
 
@@ -192,7 +176,7 @@
 
     border-radius:50%;
 
-    background:linear-gradient(135deg,#7b3ff2,#2dc4ff);
+    background:#2a3150;
 
     display:flex;
 
@@ -200,23 +184,15 @@
 
     align-items:center;
 
-    font-weight:700;
+    color:white;
 
-    font-size:15px;
-
-}
-
-.user-info{
-
-    flex:1;
+    font-weight:bold;
 
 }
 
-.user-info h4{
+.user-card h4{
 
-    font-size:15px;
-
-    font-weight:500;
+    color:white;
 
     margin:0;
 
