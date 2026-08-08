@@ -183,6 +183,11 @@ class Message(Base):
         back_populates="messages"
     )
 
+    bookmarks = relationship(
+    "Bookmark",
+    cascade="all, delete-orphan"
+)
+
 
 # ======================================================
 # Bookmark Table
@@ -198,23 +203,17 @@ class Bookmark(Base):
         index=True
     )
 
-    workspace_id = Column(
+    message_id = Column(
         Integer,
-        ForeignKey("workspaces.id"),
-        nullable=False
-    )
-
-    question = Column(
-        String,
-        nullable=False
-    )
-
-    answer = Column(
-        String,
+        ForeignKey("messages.id", ondelete="CASCADE"),
         nullable=False
     )
 
     created_at = Column(
         DateTime,
         default=datetime.utcnow
+    )
+
+    message = relationship(
+        "Message"
     )

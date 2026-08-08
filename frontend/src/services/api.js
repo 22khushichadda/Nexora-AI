@@ -231,6 +231,56 @@ export const getLatestConversation = async () => {
 
 };
 
+// ----------------------
+// Add Bookmark
+// ----------------------
+
+export const addBookmark = async (messageId) => {
+
+    const response = await API.post(
+
+        `/chat/bookmark/${messageId}`
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
+// Delete Bookmark
+// ----------------------
+
+export const deleteBookmark = async (messageId) => {
+
+    const response = await API.delete(
+
+        `/chat/bookmark/${messageId}`
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
+// Get Bookmarks
+// ----------------------
+
+export const getBookmarks = async () => {
+
+    const response = await API.get(
+
+        "/chat/bookmarks"
+
+    );
+
+    return response.data;
+
+};
+
 
 export default API;
 // ----------------------

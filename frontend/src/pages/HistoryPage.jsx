@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import DashboardLayout from "../layouts/DashboardLayout";
+
 import {
     getHistory,
     getConversation
@@ -36,29 +38,25 @@ function HistoryPage() {
 
     };
 
+    // -----------------------------
+    // Open Previous Conversation
+    // -----------------------------
+
     const openConversation = async (conversationId) => {
 
         try {
 
             const conversation = await getConversation(conversationId);
 
-            localStorage.setItem(
+            navigate("/dashboard", {
 
-    "currentConversation",
+                state: {
 
-    JSON.stringify(conversation)
+                    conversation
 
-);
+                }
 
-            navigate("/", {
-
-    state: {
-
-        conversation
-
-    }
-
-});
+            });
 
         }
 

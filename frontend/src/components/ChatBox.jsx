@@ -4,53 +4,68 @@ import { Plus, ArrowUp, FileText, X } from "lucide-react";
 import Message from "./Message";
 
 import {
-
     uploadDocument,
     askAI,
     getDocumentStatus,
     getDocuments
-
 } from "../services/api";
 
 import "../styles/chat.css";
 
 function ChatBox({ conversation }) {
 
+    // -----------------------------
+    // Debug
+    // -----------------------------
+
+    console.log("================================");
+    console.log("Conversation Prop:", conversation);
+    console.log("Conversation Messages:", conversation?.messages);
+    console.log("================================");
+
     const fileInput = useRef();
 
     const [question, setQuestion] = useState("");
-
     const [loading, setLoading] = useState(false);
-
     const [uploadedFile, setUploadedFile] = useState(null);
-
     const [messages, setMessages] = useState([]);
-
     const [processing, setProcessing] = useState(false);
-
     const [documentReady, setDocumentReady] = useState(false);
-
     const [conversationId, setConversationId] = useState(null);
 
     // -----------------------------
     // Load Dashboard
     // -----------------------------
 
-   useEffect(() => {
+    useEffect(() => {
 
-    loadLatestDocument();
+        loadLatestDocument();
 
-    if (conversation && messages.length === 0) {
+        if (conversation) {
 
-        setConversationId(conversation.conversation_id);
+            console.log("Loading Conversation...");
 
-        setMessages(conversation.messages || []);
+            console.log(conversation);
 
-        setDocumentReady(true);
+            setConversationId(
+                conversation.conversation_id
+            );
 
-    }
+            setMessages(
+                conversation.messages || []
+            );
 
-}, [conversation]);
+            console.log(
+                "Loaded Messages:",
+                conversation.messages
+            );
+
+            setDocumentReady(true);
+
+        }
+
+    }, [conversation]);
+
     // -----------------------------
     // Load Latest Uploaded Document
     // -----------------------------
@@ -81,8 +96,6 @@ function ChatBox({ conversation }) {
 
     };
 
-    
-
     // -----------------------------
     // Check Processing Status
     // -----------------------------
@@ -107,18 +120,21 @@ function ChatBox({ conversation }) {
 
                     setMessages(prev => [
 
-                        ...prev,
+    ...prev,
 
-                        {
+    {
 
-                            sender: "ai",
+        id: response.message_id,
 
-                            text:
-                                "✅ Document indexed successfully.\n\nNexora AI is ready."
+        sender: "ai",
 
-                        }
+        text: response.answer,
 
-                    ]);
+        sources: response.sources || []
+
+    }
+
+]);
 
                     clearInterval(interval);
 
@@ -141,78 +157,78 @@ function ChatBox({ conversation }) {
     // -----------------------------
     // Upload PDF
     // -----------------------------
+
+    const handleUpload = async (e) => {
+
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        try {
+
+            setLoading(true);
+
+            await uploadDocument(file);
+
+            setUploadedFile(file.name);
+
+            setProcessing(true);
+
+            setDocumentReady(false);
+
+            setMessages(prev => [
+
+                ...prev,
+
+                {
+
+                    sender: "ai",
+
+                    text:
+                        `📄 "${file.name}" uploaded successfully.\n\n🧠 Nexora AI is analysing your document...`
+
+                }
+
+            ]);
+
+        }
+
+        catch (err) {
+
+            setMessages(prev => [
+
+                ...prev,
+
+                {
+
+                    sender: "ai",
+
+                    text:
+
+                        err.response?.data?.detail ||
+
+                        err.message ||
+
+                        "Upload Failed."
+
+                }
+
+            ]);
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
     // -----------------------------
-// Upload PDF
-// -----------------------------
-
-const handleUpload = async (e) => {
-
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    try {
-
-        setLoading(true);
-
-        await uploadDocument(file);
-
-        setUploadedFile(file.name);
-
-        setProcessing(true);
-
-        setDocumentReady(false);
-
-        setMessages(prev => [
-
-            ...prev,
-
-            {
-
-                sender: "ai",
-
-                text: `📄 "${file.name}" uploaded successfully.\n\n🧠 Nexora AI is analysing your document...`
-
-            }
-
-        ]);
-
-    }
-
-    catch (err) {
-
-        setMessages(prev => [
-
-            ...prev,
-
-            {
-
-                sender: "ai",
-
-                text:
-
-                    err.response?.data?.detail ||
-
-                    err.message ||
-
-                    "Upload Failed."
-
-            }
-
-        ]);
-
-    }
-
-    finally {
-
-        setLoading(false);
-
-    }
-
-};
-
-
-// -----------------------------
+    // Ask AI
+    // -----------------------------
+    // -----------------------------
 // Ask AI
 // -----------------------------
 
@@ -245,17 +261,21 @@ const handleAsk = async () => {
 
     setQuestion("");
 
+    // Show user message immediately
+
     setMessages(prev => [
 
         ...prev,
 
         {
 
-            sender: "user",
+    id: Date.now(),
 
-            text: currentQuestion
+    sender: "user",
 
-        }
+    text: currentQuestion
+
+}
 
     ]);
 
@@ -271,7 +291,7 @@ const handleAsk = async () => {
 
         );
 
-        if (response?.conversation_id !== undefined) {
+        if (response?.conversation_id) {
 
             setConversationId(
 
@@ -300,6 +320,8 @@ const handleAsk = async () => {
     }
 
     catch (err) {
+
+        console.log(err);
 
         setMessages(prev => [
 
@@ -331,7 +353,6 @@ const handleAsk = async () => {
 
 };
 
-
 return (
 
     <>
@@ -360,19 +381,30 @@ return (
 
                     {
 
+                        console.log(
+                            "Rendering Messages:",
+                            messages
+                        )
+
+                    }
+
+                    {
+
                         messages.map((msg, index) => (
 
                             <Message
 
-                                key={index}
+    key={msg.id || index}
 
-                                sender={msg.sender}
+    messageId={msg.id}
 
-                                text={msg.text}
+    sender={msg.sender}
 
-                                sources={msg.sources}
+    text={msg.text}
 
-                            />
+    sources={msg.sources}
+
+/>
 
                         ))
 
@@ -411,6 +443,10 @@ return (
                             setDocumentReady(false);
 
                             setProcessing(false);
+
+                            setMessages([]);
+
+                            setConversationId(null);
 
                             fileInput.current.value = "";
 

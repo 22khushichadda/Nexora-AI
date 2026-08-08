@@ -1,12 +1,50 @@
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { Bookmark } from "lucide-react";
+
+import { addBookmark } from "../services/api";
+
 import "../styles/message.css";
 
-function Message({ sender, text, sources }) {
+function Message({
+
+    sender,
+
+    text,
+
+    sources,
+
+    messageId
+
+}) {
+
+    const [bookmarked, setBookmarked] = useState(false);
 
     const safeText =
+
         typeof text === "string"
+
             ? text
+
             : JSON.stringify(text, null, 2);
+
+    const handleBookmark = async () => {
+
+        try {
+
+            await addBookmark(messageId);
+
+            setBookmarked(true);
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
 
     return (
 
@@ -29,7 +67,55 @@ function Message({ sender, text, sources }) {
                 {
 
                     sender === "ai" &&
+
+                    messageId && (
+
+                        <button
+
+                            className="bookmark-btn"
+
+                            onClick={handleBookmark}
+
+                        >
+
+                            <Bookmark
+
+                                size={18}
+
+                                fill={
+
+                                    bookmarked
+
+                                        ? "#FFD54A"
+
+                                        : "none"
+
+                                }
+
+                            />
+
+                            {
+
+                                bookmarked
+
+                                    ? " Bookmarked"
+
+                                    : " Bookmark"
+
+                            }
+
+                        </button>
+
+                    )
+
+                }
+
+                {
+
+                    sender === "ai" &&
+
                     Array.isArray(sources) &&
+
                     sources.length > 0 && (
 
                         <div className="sources">
@@ -41,8 +127,11 @@ function Message({ sender, text, sources }) {
                                 sources.map((source, index) => (
 
                                     <div
+
                                         key={index}
+
                                         className="source-item"
+
                                     >
 
                                         📄 {

@@ -7,7 +7,8 @@ from app.database.database import get_db
 from app.database.models import (
     Document,
     Conversation,
-    Message
+    Message,
+    Bookmark
 )
 
 from app.services.rag_service import ask_question
@@ -203,7 +204,7 @@ def chat(
 
         )
 
-        # ---------------------------------
+               # ---------------------------------
         # Save AI Message
         # ---------------------------------
 
@@ -221,9 +222,13 @@ def chat(
 
         db.commit()
 
+        db.refresh(ai_message)
+
         return {
 
             "conversation_id": conversation.id,
+
+            "message_id": ai_message.id,
 
             "question": request.question,
 
@@ -390,14 +395,123 @@ def get_conversation(
 
             {
 
-                "sender": "user" if msg.role == "user" else "ai",
+    "id": msg.id,
 
-                "text": msg.content
+    "sender": "user" if msg.role == "user" else "ai",
 
-            }
+    "text": msg.content
+
+}
 
             for msg in messages
 
         ]
+
+    }
+# ======================================================
+# Add Bookmark
+# ======================================================
+
+@router.post("/bookmark/{message_id}")
+def bookmark_message(
+    message_id: int,
+    db: Session = Depends(get_db)
+):
+
+    existing = db.query(Bookmark).filter(
+        Bookmark.message_id == message_id
+    ).first()
+
+    if existing:
+
+        return {
+
+            "message": "Already bookmarked."
+
+        }
+
+    bookmark = Bookmark(
+
+        message_id=message_id
+
+    )
+
+    db.add(bookmark)
+
+    db.commit()
+
+    db.refresh(bookmark)
+
+    return {
+
+        "message": "Bookmark added.",
+
+        "bookmark_id": bookmark.id
+
+    }
+
+    # ======================================================
+# Get All Bookmarks
+# ======================================================
+
+@router.get("/bookmarks")
+def get_bookmarks(
+    db: Session = Depends(get_db)
+):
+
+    bookmarks = db.query(Bookmark).all()
+
+    result = []
+
+    for bookmark in bookmarks:
+
+        result.append({
+
+            "bookmark_id": bookmark.id,
+
+            "message_id": bookmark.message.id,
+
+            "conversation_id": bookmark.message.conversation_id,
+
+            "answer": bookmark.message.content,
+
+            "created_at": bookmark.created_at
+
+        })
+
+    return result
+# ======================================================
+# Delete Bookmark
+# ======================================================
+
+@router.delete("/bookmark/{message_id}")
+def delete_bookmark(
+    message_id: int,
+    db: Session = Depends(get_db)
+):
+
+    bookmark = db.query(Bookmark).filter(
+
+        Bookmark.message_id == message_id
+
+    ).first()
+
+    if bookmark is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Bookmark not found."
+
+        )
+
+    db.delete(bookmark)
+
+    db.commit()
+
+    return {
+
+        "message": "Bookmark removed."
 
     }
