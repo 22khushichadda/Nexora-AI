@@ -467,17 +467,20 @@ def get_bookmarks(
 
         result.append({
 
-            "bookmark_id": bookmark.id,
+    "bookmark_id": bookmark.id,
 
-            "message_id": bookmark.message.id,
+    "message_id": bookmark.message.id,
 
-            "conversation_id": bookmark.message.conversation_id,
+    "conversation_id": bookmark.message.conversation_id,
 
-            "answer": bookmark.message.content,
+    "conversation_title":
+        bookmark.message.conversation.title,
 
-            "created_at": bookmark.created_at
+    "answer": bookmark.message.content,
 
-        })
+    "created_at": bookmark.created_at
+
+})
 
     return result
 # ======================================================
