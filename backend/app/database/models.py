@@ -43,6 +43,12 @@ class Workspace(Base):
         cascade="all, delete-orphan"
     )
 
+    members = relationship(
+        "WorkspaceMember",
+        back_populates="workspace",
+        cascade="all, delete-orphan"
+    )
+
 
 # ======================================================
 # Documents Table
@@ -217,3 +223,48 @@ class Bookmark(Base):
     message = relationship(
         "Message"
     )
+
+    # ======================================================
+# Workspace Members
+# ======================================================
+
+class WorkspaceMember(Base):
+
+    __tablename__ = "workspace_members"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id"),
+        nullable=False
+    )
+
+    name = Column(
+        String(100),
+        nullable=False
+    )
+
+    email = Column(
+        String(255),
+        nullable=False
+    )
+
+    role = Column(
+        String(20),
+        default="Member"
+    )
+
+    joined_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    workspace = relationship(
+    "Workspace",
+    back_populates="members"
+)

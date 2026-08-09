@@ -6,7 +6,8 @@ import {
     FileText,
     Bookmark,
     History,
-    Plus
+    Plus,
+    Users
 } from "lucide-react";
 
 import "../styles/sidebar.css";
@@ -134,6 +135,26 @@ function Sidebar() {
                         <History size={20} />
 
                         History
+
+                    </NavLink>
+
+                    {/* ---------------- Team ---------------- */}
+
+                    <NavLink
+
+                        to="/team"
+
+                        className={({ isActive }) =>
+
+                            isActive ? "menu-link active" : "menu-link"
+
+                        }
+
+                    >
+
+                        <Users size={20} />
+
+                        Team
 
                     </NavLink>
 

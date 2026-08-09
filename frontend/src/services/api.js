@@ -298,3 +298,38 @@ export const getConversation = async (conversationId) => {
     return response.data;
 
 };
+
+// ----------------------
+// Add Member
+// ----------------------
+
+export const addMember = async (member) => {
+
+    const response = await API.post(
+
+        "/workspace/member",
+
+        member
+
+    );
+
+    return response.data;
+
+};
+
+
+// ----------------------
+// Get Members
+// ----------------------
+
+export const getMembers = async (workspaceId) => {
+
+    const response = await API.get(
+
+        `/workspace/members/${workspaceId}`
+
+    );
+
+    return response.data;
+
+};

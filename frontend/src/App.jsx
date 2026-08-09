@@ -5,6 +5,7 @@ import Documents from "./pages/Documents";
 import BookmarksPage from "./pages/BookmarksPage";
 import HistoryPage from "./pages/HistoryPage";
 import PdfViewer from "./pages/PdfViewer";
+import TeamPage from "./pages/TeamPage";
 
 function App() {
   return (
@@ -36,6 +37,11 @@ function App() {
         path="/viewer/:id"
         element={<PdfViewer />}
       />
+
+      <Route
+    path="/team"
+    element={<TeamPage />}
+/>
 
     </Routes>
   );
