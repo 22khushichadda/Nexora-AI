@@ -293,3 +293,107 @@ def get_members(
         for member in members
 
     ]
+
+    # ======================================================
+# Remove Member
+# ======================================================
+
+@router.delete("/workspace/member/{member_id}")
+def remove_member(
+
+    member_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    member = (
+
+        db.query(WorkspaceMember)
+
+        .filter(
+
+            WorkspaceMember.id == member_id
+
+        )
+
+        .first()
+
+    )
+
+    if not member:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Member not found."
+
+        )
+
+    db.delete(member)
+
+    db.commit()
+
+    return {
+
+        "message": "Member removed successfully."
+
+    }
+
+
+    # ======================================================
+# Update Member Role
+# ======================================================
+
+class RoleUpdateRequest(BaseModel):
+
+    role: str
+
+
+@router.put("/workspace/member/{member_id}")
+def update_member_role(
+
+    member_id: int,
+
+    request: RoleUpdateRequest,
+
+    db: Session = Depends(get_db)
+
+):
+
+    member = (
+
+        db.query(WorkspaceMember)
+
+        .filter(
+
+            WorkspaceMember.id == member_id
+
+        )
+
+        .first()
+
+    )
+
+    if not member:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Member not found."
+
+        )
+
+    member.role = request.role
+
+    db.commit()
+
+    db.refresh(member)
+
+    return {
+
+        "message": "Role updated successfully."
+
+    }
