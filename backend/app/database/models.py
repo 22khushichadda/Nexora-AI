@@ -27,10 +27,6 @@ class Workspace(Base):
         default=datetime.utcnow
     )
 
-    # ------------------------
-    # Relationships
-    # ------------------------
-
     documents = relationship(
         "Document",
         back_populates="workspace",
@@ -90,6 +86,11 @@ class Document(Base):
         default=datetime.utcnow
     )
 
+    uploaded_by = Column(
+        String(100),
+        default="Nexora User"
+    )
+
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id"),
@@ -127,13 +128,11 @@ class Conversation(Base):
         back_populates="conversations"
     )
 
-    # First question becomes history title
     title = Column(
         String(255),
         nullable=True
     )
 
-    # Active conversation
     is_active = Column(
         Integer,
         default=1
@@ -190,9 +189,9 @@ class Message(Base):
     )
 
     bookmarks = relationship(
-    "Bookmark",
-    cascade="all, delete-orphan"
-)
+        "Bookmark",
+        cascade="all, delete-orphan"
+    )
 
 
 # ======================================================
@@ -224,7 +223,8 @@ class Bookmark(Base):
         "Message"
     )
 
-    # ======================================================
+
+# ======================================================
 # Workspace Members
 # ======================================================
 
@@ -265,6 +265,6 @@ class WorkspaceMember(Base):
     )
 
     workspace = relationship(
-    "Workspace",
-    back_populates="members"
-)
+        "Workspace",
+        back_populates="members"
+    )
