@@ -15,6 +15,8 @@ from app.schemas.workspace import (
     WorkspaceResponse
 )
 
+from app.services.email_service import send_invitation_email
+
 import secrets
 from datetime import datetime, timedelta
 
@@ -399,20 +401,50 @@ def add_member(
 
 
     # ------------------------------------------
-    # Temporary Response
+    # Send Invitation Email
     # ------------------------------------------
-    #
-    # IMPORTANT:
-    # We are NOT sending an email yet.
-    #
-    # This token will later be included
-    # in the actual email invitation link.
+
+    try:
+
+        send_invitation_email(
+
+            recipient_email=invitation.email,
+
+            recipient_name=invitation.name,
+
+            workspace_name=workspace.name,
+
+            invitation_token=invitation.token
+
+        )
+
+    except Exception as e:
+
+        print(
+            "EMAIL ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=(
+                "Invitation was created, "
+                "but the email could not be sent."
+            )
+
+        )
+
+
+    # ------------------------------------------
+    # Successful Response
     # ------------------------------------------
 
     return {
 
         "message":
-        "Invitation created successfully.",
+        "Invitation sent successfully.",
 
         "invitation_id":
         invitation.id,
@@ -422,9 +454,6 @@ def add_member(
 
         "email":
         invitation.email,
-
-        "token":
-        invitation.token,
 
         "expires_at":
         invitation.expires_at
@@ -491,6 +520,78 @@ def get_members(
         }
 
         for member in members
+
+    ]
+
+
+# ======================================================
+# Get Pending Workspace Invitations
+# ======================================================
+
+@router.get(
+    "/workspace/invitations/{workspace_id}"
+)
+def get_invitations(
+
+    workspace_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    invitations = (
+
+        db.query(WorkspaceInvitation)
+
+        .filter(
+
+            WorkspaceInvitation.workspace_id ==
+            workspace_id,
+
+            WorkspaceInvitation.status ==
+            "pending"
+
+        )
+
+        .order_by(
+
+            WorkspaceInvitation.created_at.desc()
+
+        )
+
+        .all()
+
+    )
+
+
+    return [
+
+        {
+
+            "id":
+            invitation.id,
+
+            "name":
+            invitation.name,
+
+            "email":
+            invitation.email,
+
+            "role":
+            invitation.role,
+
+            "status":
+            invitation.status,
+
+            "expires_at":
+            invitation.expires_at,
+
+            "created_at":
+            invitation.created_at
+
+        }
+
+        for invitation in invitations
 
     ]
 
@@ -607,39 +708,3 @@ def update_member_role(
         "Role updated successfully."
 
     }
-
-
-    # ======================================================
-# Get Pending Workspace Invitations
-# ======================================================
-
-@router.get("/workspace/invitations/{workspace_id}")
-def get_invitations(
-    workspace_id: int,
-    db: Session = Depends(get_db)
-):
-
-    invitations = (
-        db.query(WorkspaceInvitation)
-        .filter(
-            WorkspaceInvitation.workspace_id == workspace_id,
-            WorkspaceInvitation.status == "pending"
-        )
-        .order_by(
-            WorkspaceInvitation.created_at.desc()
-        )
-        .all()
-    )
-
-    return [
-        {
-            "id": invitation.id,
-            "name": invitation.name,
-            "email": invitation.email,
-            "role": invitation.role,
-            "status": invitation.status,
-            "expires_at": invitation.expires_at,
-            "created_at": invitation.created_at
-        }
-        for invitation in invitations
-    ]

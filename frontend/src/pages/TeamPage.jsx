@@ -3,6 +3,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 import {
     getMembers,
+    getInvitations,
     addMember,
     removeMember,
     updateMemberRole,
@@ -28,15 +29,21 @@ function TeamPage() {
 
 
     // ======================================================
-    // Load Members
+    // Load Members + Invitations
     // ======================================================
 
     useEffect(() => {
 
         loadMembers();
 
+        loadInvitations();
+
     }, []);
 
+
+    // ======================================================
+    // Load Current Members
+    // ======================================================
 
     const loadMembers = async () => {
 
@@ -54,6 +61,34 @@ function TeamPage() {
 
             console.log(
                 "Unable to load members:",
+                err
+            );
+
+        }
+
+    };
+
+
+    // ======================================================
+    // Load Pending Invitations
+    // ======================================================
+
+    const loadInvitations = async () => {
+
+        try {
+
+            const data = await getInvitations(
+                WORKSPACE_ID
+            );
+
+            setPendingInvitations(data);
+
+        }
+
+        catch (err) {
+
+            console.log(
+                "Unable to load invitations:",
                 err
             );
 
@@ -86,8 +121,9 @@ function TeamPage() {
             setInviteMessage("");
 
 
-            // IMPORTANT:
-            // Store the API response
+            // ------------------------------------------
+            // Create Invitation
+            // ------------------------------------------
 
             const response = await addMember({
 
@@ -103,38 +139,6 @@ function TeamPage() {
 
 
             // ------------------------------------------
-            // Add invitation to Pending Invitations
-            // ------------------------------------------
-
-            const newInvitation = {
-
-                id: response.invitation_id,
-
-                name: name.trim(),
-
-                email: email.trim(),
-
-                role: role,
-
-                status: response.status || "pending",
-
-                expires_at: response.expires_at,
-
-                token: response.token
-
-            };
-
-
-            setPendingInvitations((prev) => [
-
-                newInvitation,
-
-                ...prev
-
-            ]);
-
-
-            // ------------------------------------------
             // Clear Form
             // ------------------------------------------
 
@@ -146,10 +150,17 @@ function TeamPage() {
 
 
             // ------------------------------------------
-            // Refresh Current Members
+            // Reload Members
             // ------------------------------------------
 
             await loadMembers();
+
+
+            // ------------------------------------------
+            // Reload Pending Invitations
+            // ------------------------------------------
+
+            await loadInvitations();
 
 
             // ------------------------------------------
@@ -541,7 +552,8 @@ function TeamPage() {
                                                 "space-between",
                                             alignItems:
                                                 "center",
-                                            gap: "20px",
+                                            gap:
+                                                "20px",
                                             border:
                                                 "1px solid #2c3247"
                                         }}
@@ -552,13 +564,27 @@ function TeamPage() {
 
                                         <div>
 
-                                            <h3>
+                                            <h3
+                                                style={{
+                                                    margin:
+                                                        "0 0 5px 0"
+                                                }}
+                                            >
 
-                                                {invitation.name}
+                                                {
+                                                    invitation.name
+                                                }
 
                                             </h3>
 
-                                            <p>
+                                            <p
+                                                style={{
+                                                    margin:
+                                                        "0",
+                                                    color:
+                                                        "#aeb7d0"
+                                                }}
+                                            >
 
                                                 {
                                                     invitation.email
@@ -577,7 +603,8 @@ function TeamPage() {
                                                     "flex",
                                                 alignItems:
                                                     "center",
-                                                gap: "15px"
+                                                gap:
+                                                    "15px"
                                             }}
                                         >
 
@@ -603,7 +630,12 @@ function TeamPage() {
                                             </span>
 
 
-                                            <span>
+                                            <span
+                                                style={{
+                                                    color:
+                                                        "#ffffff"
+                                                }}
+                                            >
 
                                                 {
                                                     invitation.role
@@ -683,7 +715,8 @@ function TeamPage() {
                                             "space-between",
                                         alignItems:
                                             "center",
-                                        gap: "20px"
+                                        gap:
+                                            "20px"
                                     }}
 
                                 >
@@ -692,7 +725,12 @@ function TeamPage() {
 
                                     <div>
 
-                                        <h3>
+                                        <h3
+                                            style={{
+                                                margin:
+                                                    "0 0 5px 0"
+                                            }}
+                                        >
 
                                             {
                                                 member.name
@@ -700,7 +738,14 @@ function TeamPage() {
 
                                         </h3>
 
-                                        <p>
+                                        <p
+                                            style={{
+                                                margin:
+                                                    "0",
+                                                color:
+                                                    "#aeb7d0"
+                                            }}
+                                        >
 
                                             {
                                                 member.email
