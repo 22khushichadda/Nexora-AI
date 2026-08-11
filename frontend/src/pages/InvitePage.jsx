@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+
+import DashboardLayout from "../layouts/DashboardLayout";
+
 import axios from "axios";
 
 
 function InvitePage() {
 
     const { token } = useParams();
-
-    const navigate = useNavigate();
 
     const [invitation, setInvitation] = useState(null);
 
@@ -34,9 +35,7 @@ function InvitePage() {
 
                 );
 
-                setInvitation(
-                    response.data
-                );
+                setInvitation(response.data);
 
             }
 
@@ -96,7 +95,7 @@ function InvitePage() {
             );
 
 
-            navigate("/team");
+            window.location.href = "/team";
 
         }
 
@@ -134,20 +133,18 @@ function InvitePage() {
 
         return (
 
-            <div
-                style={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "#0f111a",
+            <DashboardLayout>
+
+                <div style={{
+                    padding: "40px",
                     color: "white"
-                }}
-            >
+                }}>
 
-                Loading invitation...
+                    Loading invitation...
 
-            </div>
+                </div>
+
+            </DashboardLayout>
 
         );
 
@@ -162,24 +159,17 @@ function InvitePage() {
 
         return (
 
-            <div
-                style={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "#0f111a",
-                    color: "white"
-                }}
-            >
+            <DashboardLayout>
 
                 <div
                     style={{
                         background: "#171b27",
                         padding: "40px",
                         borderRadius: "16px",
+                        maxWidth: "600px",
+                        margin: "40px auto",
                         textAlign: "center",
-                        maxWidth: "500px"
+                        color: "white"
                     }}
                 >
 
@@ -200,7 +190,7 @@ function InvitePage() {
 
                 </div>
 
-            </div>
+            </DashboardLayout>
 
         );
 
@@ -208,40 +198,34 @@ function InvitePage() {
 
 
     // ======================================================
-    // Invitation
+    // Invitation Page
     // ======================================================
 
     return (
 
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                background: "#0f111a",
-                color: "white"
-            }}
-        >
+        <DashboardLayout>
 
             <div
                 style={{
+                    maxWidth: "650px",
+                    margin: "50px auto",
                     background: "#171b27",
                     padding: "40px",
-                    borderRadius: "16px",
+                    borderRadius: "18px",
                     textAlign: "center",
-                    width: "420px",
-                    maxWidth: "90%"
+                    color: "white"
                 }}
             >
 
                 <div
                     style={{
-                        fontSize: "50px",
+                        fontSize: "55px",
                         marginBottom: "15px"
                     }}
                 >
+
                     👥
+
                 </div>
 
 
@@ -254,7 +238,7 @@ function InvitePage() {
                     style={{
                         color: "#aeb7d0",
                         marginTop: "15px",
-                        lineHeight: "1.6"
+                        lineHeight: "1.7"
                     }}
                 >
 
@@ -264,7 +248,7 @@ function InvitePage() {
                         {invitation.name}
                     </strong>
 
-                    ,
+                    !
 
                     <br />
 
@@ -277,36 +261,57 @@ function InvitePage() {
                 <div
                     style={{
                         marginTop: "25px",
-                        marginBottom: "25px",
-                        padding: "15px",
+                        padding: "20px",
                         background: "#10131d",
-                        borderRadius: "10px"
+                        borderRadius: "12px",
+                        textAlign: "left"
                     }}
                 >
 
                     <p>
+
                         <strong>
                             Email:
                         </strong>
-                    </p>
 
-                    <p>
+                        <br />
+
                         {invitation.email}
+
                     </p>
 
 
                     <p
                         style={{
-                            marginTop: "10px"
+                            marginTop: "15px"
                         }}
                     >
+
                         <strong>
                             Role:
                         </strong>
+
+                        <br />
+
+                        {invitation.role}
+
                     </p>
 
-                    <p>
-                        {invitation.role}
+
+                    <p
+                        style={{
+                            marginTop: "15px"
+                        }}
+                    >
+
+                        <strong>
+                            Status:
+                        </strong>
+
+                        <br />
+
+                        ⏳ {invitation.status}
+
                     </p>
 
                 </div>
@@ -320,6 +325,7 @@ function InvitePage() {
 
                     style={{
                         width: "100%",
+                        marginTop: "25px",
                         padding: "14px",
                         border: "none",
                         borderRadius: "10px",
@@ -348,7 +354,7 @@ function InvitePage() {
 
             </div>
 
-        </div>
+        </DashboardLayout>
 
     );
 

@@ -708,3 +708,111 @@ def update_member_role(
         "Role updated successfully."
 
     }
+
+# ======================================================
+# Get Invitation by Token
+# ======================================================
+
+@router.get(
+    "/workspace/invitation/{token}"
+)
+def get_invitation_by_token(
+
+    token: str,
+
+    db: Session = Depends(get_db)
+
+):
+
+    invitation = (
+
+        db.query(WorkspaceInvitation)
+
+        .filter(
+
+            WorkspaceInvitation.token == token
+
+        )
+
+        .first()
+
+    )
+
+
+    # ------------------------------------------
+    # Invitation Not Found
+    # ------------------------------------------
+
+    if not invitation:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Invitation not found."
+
+        )
+
+
+    # ------------------------------------------
+    # Check Invitation Status
+    # ------------------------------------------
+
+    if invitation.status != "pending":
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="This invitation is no longer active."
+
+        )
+
+
+    # ------------------------------------------
+    # Check Expiry
+    # ------------------------------------------
+
+    if invitation.expires_at < datetime.utcnow():
+
+        invitation.status = "expired"
+
+        db.commit()
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="This invitation has expired."
+
+        )
+
+
+    # ------------------------------------------
+    # Return Invitation Details
+    # ------------------------------------------
+
+    return {
+
+        "id":
+        invitation.id,
+
+        "name":
+        invitation.name,
+
+        "email":
+        invitation.email,
+
+        "role":
+        invitation.role,
+
+        "status":
+        invitation.status,
+
+        "workspace_id":
+        invitation.workspace_id,
+
+        "expires_at":
+        invitation.expires_at
+
+    }
