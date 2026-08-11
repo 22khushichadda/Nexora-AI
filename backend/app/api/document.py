@@ -18,13 +18,25 @@ from app.schemas.document import DocumentResponse
 from app.services.pdf_service import extract_pdf_data
 from app.services.background_indexer import build_document_index
 
-router = APIRouter(tags=["Documents"])
+
+router = APIRouter(
+    tags=["Documents"]
+)
+
 
 UPLOAD_FOLDER = "uploads"
 INDEX_FOLDER = "indexes"
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(INDEX_FOLDER, exist_ok=True)
+
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
+
+os.makedirs(
+    INDEX_FOLDER,
+    exist_ok=True
+)
 
 
 # ======================================================
@@ -66,11 +78,18 @@ def upload_document(
         )
 
     # ------------------------------------------
-    # Extract only metadata
-    # (Very Fast)
+    # Extract PDF Metadata
     # ------------------------------------------
 
-    pdf = extract_pdf_data(filepath)
+    pdf = extract_pdf_data(
+
+        filepath
+
+    )
+
+    # ------------------------------------------
+    # Create Document
+    # ------------------------------------------
 
     document = Document(
 
@@ -96,6 +115,8 @@ def upload_document(
 
         status="processing",
 
+        uploaded_by="Khushi",
+
         workspace_id=workspace_id
 
     )
@@ -112,11 +133,11 @@ def upload_document(
 
     background_tasks.add_task(
 
-    build_document_index,
+        build_document_index,
 
-    document.id
+        document.id
 
-)
+    )
 
     return document
 
@@ -125,7 +146,9 @@ def upload_document(
 # Get Documents
 # ======================================================
 
-@router.get("/documents/{workspace_id}")
+@router.get(
+    "/documents/{workspace_id}"
+)
 def get_documents(
 
     workspace_id: int,
@@ -134,19 +157,36 @@ def get_documents(
 
 ):
 
-    documents = db.query(Document).filter(
+    documents = (
 
-        Document.workspace_id == workspace_id
+        db.query(Document)
 
-    ).all()
+        .filter(
+
+            Document.workspace_id == workspace_id
+
+        )
+
+        .order_by(
+
+            Document.id.desc()
+
+        )
+
+        .all()
+
+    )
 
     return documents
+
 
 # ======================================================
 # Document Status
 # ======================================================
 
-@router.get("/documents/status/{workspace_id}")
+@router.get(
+    "/documents/status/{workspace_id}"
+)
 def document_status(
 
     workspace_id: int,
@@ -155,15 +195,25 @@ def document_status(
 
 ):
 
-    document = db.query(Document).filter(
+    document = (
 
-        Document.workspace_id == workspace_id
+        db.query(Document)
 
-    ).order_by(
+        .filter(
 
-        Document.id.desc()
+            Document.workspace_id == workspace_id
 
-    ).first()
+        )
+
+        .order_by(
+
+            Document.id.desc()
+
+        )
+
+        .first()
+
+    )
 
     if not document:
 

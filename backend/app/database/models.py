@@ -1,7 +1,17 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey
+)
+
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    relationship
+)
 
 
 class Base(DeclarativeBase):
@@ -16,16 +26,29 @@ class Workspace(Base):
 
     __tablename__ = "workspaces"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    name = Column(String(255), nullable=False)
+    name = Column(
+        String(255),
+        nullable=False
+    )
 
-    description = Column(String(500))
+    description = Column(
+        String(500)
+    )
 
     created_at = Column(
         DateTime,
         default=datetime.utcnow
     )
+
+    # -----------------------------
+    # Relationships
+    # -----------------------------
 
     documents = relationship(
         "Document",
@@ -45,6 +68,12 @@ class Workspace(Base):
         cascade="all, delete-orphan"
     )
 
+    invitations = relationship(
+        "WorkspaceInvitation",
+        back_populates="workspace",
+        cascade="all, delete-orphan"
+    )
+
 
 # ======================================================
 # Documents Table
@@ -54,27 +83,53 @@ class Document(Base):
 
     __tablename__ = "documents"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    filename = Column(String(255), nullable=False)
+    filename = Column(
+        String(255),
+        nullable=False
+    )
 
-    filepath = Column(String(500), nullable=False)
+    filepath = Column(
+        String(500),
+        nullable=False
+    )
 
-    filetype = Column(String(100))
+    filetype = Column(
+        String(100)
+    )
 
-    filesize = Column(Integer)
+    filesize = Column(
+        Integer
+    )
 
-    pages = Column(Integer)
+    pages = Column(
+        Integer
+    )
 
-    title = Column(String(255))
+    title = Column(
+        String(255)
+    )
 
-    author = Column(String(255))
+    author = Column(
+        String(255)
+    )
 
-    creator = Column(String(255))
+    creator = Column(
+        String(255)
+    )
 
-    producer = Column(String(255))
+    producer = Column(
+        String(255)
+    )
 
-    content = Column(String)
+    content = Column(
+        String
+    )
 
     status = Column(
         String(20),
@@ -128,11 +183,13 @@ class Conversation(Base):
         back_populates="conversations"
     )
 
+    # First question becomes history title
     title = Column(
         String(255),
         nullable=True
     )
 
+    # Active conversation
     is_active = Column(
         Integer,
         default=1
@@ -190,6 +247,7 @@ class Message(Base):
 
     bookmarks = relationship(
         "Bookmark",
+        back_populates="message",
         cascade="all, delete-orphan"
     )
 
@@ -210,7 +268,10 @@ class Bookmark(Base):
 
     message_id = Column(
         Integer,
-        ForeignKey("messages.id", ondelete="CASCADE"),
+        ForeignKey(
+            "messages.id",
+            ondelete="CASCADE"
+        ),
         nullable=False
     )
 
@@ -220,7 +281,8 @@ class Bookmark(Base):
     )
 
     message = relationship(
-        "Message"
+        "Message",
+        back_populates="bookmarks"
     )
 
 
@@ -267,4 +329,100 @@ class WorkspaceMember(Base):
     workspace = relationship(
         "Workspace",
         back_populates="members"
+    )
+
+
+# ======================================================
+# Workspace Invitations
+# ======================================================
+
+class WorkspaceInvitation(Base):
+
+    __tablename__ = "workspace_invitations"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    # -----------------------------
+    # Workspace
+    # -----------------------------
+
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id"),
+        nullable=False
+    )
+
+    # -----------------------------
+    # Invited Person
+    # -----------------------------
+
+    name = Column(
+        String(100),
+        nullable=False
+    )
+
+    email = Column(
+        String(255),
+        nullable=False
+    )
+
+    # -----------------------------
+    # Requested Role
+    # -----------------------------
+
+    role = Column(
+        String(20),
+        default="Member"
+    )
+
+    # -----------------------------
+    # Unique Invitation Token
+    # -----------------------------
+
+    token = Column(
+        String(255),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    # -----------------------------
+    # Invitation Status
+    # -----------------------------
+
+    status = Column(
+        String(20),
+        default="pending"
+    )
+
+    # pending
+    # accepted
+    # expired
+    # cancelled
+
+    # -----------------------------
+    # Dates
+    # -----------------------------
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    expires_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    # -----------------------------
+    # Relationship
+    # -----------------------------
+
+    workspace = relationship(
+        "Workspace",
+        back_populates="invitations"
     )

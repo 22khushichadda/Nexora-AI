@@ -378,3 +378,19 @@ export const removeMember = async (memberId) => {
     return response.data;
 
 };
+
+// ----------------------
+// Get Pending Invitations
+// ----------------------
+
+export const getInvitations = async (workspaceId) => {
+
+    const response = await API.get(
+
+        `/workspace/invitations/${workspaceId}`
+
+    );
+
+    return response.data;
+
+};

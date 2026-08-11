@@ -2,18 +2,13 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 
 import {
-
     getMembers,
-
     addMember,
-
     removeMember,
-
     updateMemberRole,
-
     WORKSPACE_ID
-
 } from "../services/api";
+
 
 function TeamPage() {
 
@@ -27,20 +22,28 @@ function TeamPage() {
 
     const [loading, setLoading] = useState(false);
 
+    const [inviteMessage, setInviteMessage] = useState("");
+
+    const [pendingInvitations, setPendingInvitations] = useState([]);
+
+
+    // ======================================================
+    // Load Members
+    // ======================================================
+
     useEffect(() => {
 
         loadMembers();
 
     }, []);
 
+
     const loadMembers = async () => {
 
         try {
 
             const data = await getMembers(
-
                 WORKSPACE_ID
-
             );
 
             setMembers(data);
@@ -49,41 +52,91 @@ function TeamPage() {
 
         catch (err) {
 
-            console.log(err);
+            console.log(
+                "Unable to load members:",
+                err
+            );
 
         }
 
     };
 
-    // -----------------------------
+
+    // ======================================================
     // Invite Member
-    // -----------------------------
+    // ======================================================
 
     const handleAddMember = async () => {
 
-        if (!name || !email) {
+        if (!name.trim() || !email.trim()) {
 
-            alert("Please fill all fields.");
+            setInviteMessage(
+                "❌ Please fill in both name and email."
+            );
 
             return;
 
         }
 
+
         try {
 
             setLoading(true);
 
-            await addMember({
+            setInviteMessage("");
+
+
+            // IMPORTANT:
+            // Store the API response
+
+            const response = await addMember({
 
                 workspace_id: WORKSPACE_ID,
 
-                name,
+                name: name.trim(),
 
-                email,
+                email: email.trim(),
 
-                role
+                role: role
 
             });
+
+
+            // ------------------------------------------
+            // Add invitation to Pending Invitations
+            // ------------------------------------------
+
+            const newInvitation = {
+
+                id: response.invitation_id,
+
+                name: name.trim(),
+
+                email: email.trim(),
+
+                role: role,
+
+                status: response.status || "pending",
+
+                expires_at: response.expires_at,
+
+                token: response.token
+
+            };
+
+
+            setPendingInvitations((prev) => [
+
+                newInvitation,
+
+                ...prev
+
+            ]);
+
+
+            // ------------------------------------------
+            // Clear Form
+            // ------------------------------------------
 
             setName("");
 
@@ -91,17 +144,42 @@ function TeamPage() {
 
             setRole("Member");
 
-            loadMembers();
+
+            // ------------------------------------------
+            // Refresh Current Members
+            // ------------------------------------------
+
+            await loadMembers();
+
+
+            // ------------------------------------------
+            // Success Message
+            // ------------------------------------------
+
+            setInviteMessage(
+
+                `✅ ${
+                    response.message ||
+                    "Invitation created successfully."
+                }`
+
+            );
 
         }
 
         catch (err) {
 
-            alert(
+            console.log(
+                "Invite error:",
+                err
+            );
+
+
+            setInviteMessage(
 
                 err.response?.data?.detail ||
 
-                "Unable to add member."
+                "❌ Unable to create invitation."
 
             );
 
@@ -115,41 +193,62 @@ function TeamPage() {
 
     };
 
-    // -----------------------------
-    // Remove Member
-    // -----------------------------
 
-    const handleRemoveMember = async (memberId) => {
+    // ======================================================
+    // Remove Member
+    // ======================================================
+
+    const handleRemoveMember = async (
+        memberId
+    ) => {
 
         const confirmDelete = window.confirm(
 
-            "Remove this member?"
+            "Are you sure you want to remove this member?"
 
         );
 
-        if (!confirmDelete) return;
+
+        if (!confirmDelete) {
+
+            return;
+
+        }
+
 
         try {
 
-            await removeMember(memberId);
+            await removeMember(
+                memberId
+            );
 
-            loadMembers();
+            await loadMembers();
 
         }
 
         catch (err) {
 
-            console.log(err);
+            console.log(
+                "Remove member error:",
+                err
+            );
 
-            alert("Unable to remove member.");
+            alert(
+
+                err.response?.data?.detail ||
+
+                "Unable to remove member."
+
+            );
 
         }
 
     };
 
-    // -----------------------------
-    // Change Role
-    // -----------------------------
+
+    // ======================================================
+    // Change Member Role
+    // ======================================================
 
     const handleRoleChange = async (
 
@@ -169,157 +268,177 @@ function TeamPage() {
 
             );
 
-            loadMembers();
+            await loadMembers();
 
         }
 
         catch (err) {
 
-            console.log(err);
+            console.log(
+                "Role update error:",
+                err
+            );
 
-            alert("Unable to update role.");
+            alert(
+
+                err.response?.data?.detail ||
+
+                "Unable to update member role."
+
+            );
 
         }
 
     };
 
-        return (
+
+    // ======================================================
+    // Render
+    // ======================================================
+
+    return (
 
         <DashboardLayout>
 
-            <h1>👥 Team Members</h1>
+            {/* ==================================================
+                Header
+            ================================================== */}
+
+            <h1>
+                👥 Team Members
+            </h1>
 
             <p>
-
                 Manage your workspace members
-
             </p>
 
             <br />
 
-            {/* ---------------- Invite Member ---------------- */}
+
+            {/* ==================================================
+                Invite Member
+            ================================================== */}
 
             <div
-
                 style={{
-
                     background: "#171b27",
-
-                    padding: "20px",
-
+                    padding: "24px",
                     borderRadius: "14px",
-
                     marginBottom: "30px"
-
                 }}
-
             >
 
-                <h3>Invite Member</h3>
+                <h3>
+                    Invite Member
+                </h3>
 
                 <br />
 
+
+                {/* Full Name */}
+
                 <input
+
+                    type="text"
 
                     placeholder="Full Name"
 
                     value={name}
 
                     onChange={(e) =>
-
                         setName(e.target.value)
-
                     }
 
+                    disabled={loading}
+
                     style={{
-
                         width: "100%",
-
                         padding: "12px",
-
                         marginBottom: "15px",
-
                         borderRadius: "10px",
-
-                        border: "1px solid #2c3247",
-
+                        border:
+                            "1px solid #2c3247",
                         background: "#10131d",
-
-                        color: "white"
-
+                        color: "white",
+                        boxSizing: "border-box"
                     }}
 
                 />
 
+
+                {/* Email */}
+
                 <input
+
+                    type="email"
 
                     placeholder="Email Address"
 
                     value={email}
 
                     onChange={(e) =>
-
                         setEmail(e.target.value)
-
                     }
 
+                    disabled={loading}
+
                     style={{
-
                         width: "100%",
-
                         padding: "12px",
-
                         marginBottom: "15px",
-
                         borderRadius: "10px",
-
-                        border: "1px solid #2c3247",
-
+                        border:
+                            "1px solid #2c3247",
                         background: "#10131d",
-
-                        color: "white"
-
+                        color: "white",
+                        boxSizing: "border-box"
                     }}
 
                 />
+
+
+                {/* Role */}
 
                 <select
 
                     value={role}
 
                     onChange={(e) =>
-
                         setRole(e.target.value)
-
                     }
 
+                    disabled={loading}
+
                     style={{
-
                         width: "100%",
-
                         padding: "12px",
-
                         marginBottom: "20px",
-
                         borderRadius: "10px",
-
-                        border: "1px solid #2c3247",
-
+                        border:
+                            "1px solid #2c3247",
                         background: "#10131d",
-
-                        color: "white"
-
+                        color: "white",
+                        boxSizing: "border-box"
                     }}
 
                 >
 
-                    <option>Member</option>
+                    <option value="Member">
+                        Member
+                    </option>
 
-                    <option>Admin</option>
+                    <option value="Admin">
+                        Admin
+                    </option>
 
-                    <option>Owner</option>
+                    <option value="Owner">
+                        Owner
+                    </option>
 
                 </select>
+
+
+                {/* Invite Button */}
 
                 <button
 
@@ -328,48 +447,199 @@ function TeamPage() {
                     disabled={loading}
 
                     style={{
-
                         padding: "12px 24px",
-
                         border: "none",
-
                         borderRadius: "10px",
-
-                        background: "#6366f1",
-
+                        background: loading
+                            ? "#44475a"
+                            : "#6366f1",
                         color: "white",
-
-                        cursor: "pointer",
-
+                        cursor: loading
+                            ? "not-allowed"
+                            : "pointer",
                         fontWeight: "600"
-
                     }}
 
                 >
 
                     {
-
                         loading
-
-                            ? "Adding..."
-
+                            ? "Inviting..."
                             : "Invite Member"
-
                     }
 
                 </button>
 
+
+                {/* Success / Error Message */}
+
+                {
+                    inviteMessage && (
+
+                        <p
+                            style={{
+                                marginTop: "15px",
+                                marginBottom: "0",
+                                color:
+                                    inviteMessage.startsWith("✅")
+                                        ? "#4ade80"
+                                        : "#f87171",
+                                fontWeight: "500"
+                            }}
+                        >
+
+                            {inviteMessage}
+
+                        </p>
+
+                    )
+                }
+
             </div>
 
-            {/* ---------------- Members ---------------- */}
+
+            {/* ==================================================
+                Pending Invitations
+            ================================================== */}
+
+            {
+
+                pendingInvitations.length > 0 && (
+
+                    <>
+
+                        <h2>
+                            Pending Invitations
+                        </h2>
+
+                        <br />
+
+
+                        {
+
+                            pendingInvitations.map(
+                                (invitation) => (
+
+                                    <div
+
+                                        key={
+                                            invitation.id
+                                        }
+
+                                        style={{
+                                            background:
+                                                "#171b27",
+                                            padding:
+                                                "20px",
+                                            borderRadius:
+                                                "14px",
+                                            marginBottom:
+                                                "15px",
+                                            display:
+                                                "flex",
+                                            justifyContent:
+                                                "space-between",
+                                            alignItems:
+                                                "center",
+                                            gap: "20px",
+                                            border:
+                                                "1px solid #2c3247"
+                                        }}
+
+                                    >
+
+                                        {/* Invitation Information */}
+
+                                        <div>
+
+                                            <h3>
+
+                                                {invitation.name}
+
+                                            </h3>
+
+                                            <p>
+
+                                                {
+                                                    invitation.email
+                                                }
+
+                                            </p>
+
+                                        </div>
+
+
+                                        {/* Invitation Status */}
+
+                                        <div
+                                            style={{
+                                                display:
+                                                    "flex",
+                                                alignItems:
+                                                    "center",
+                                                gap: "15px"
+                                            }}
+                                        >
+
+                                            <span
+                                                style={{
+                                                    background:
+                                                        "#2d3653",
+                                                    color:
+                                                        "#a5b4fc",
+                                                    padding:
+                                                        "8px 14px",
+                                                    borderRadius:
+                                                        "20px",
+                                                    fontSize:
+                                                        "14px",
+                                                    fontWeight:
+                                                        "600"
+                                                }}
+                                            >
+
+                                                ⏳ Pending
+
+                                            </span>
+
+
+                                            <span>
+
+                                                {
+                                                    invitation.role
+                                                }
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                )
+
+                            )
+
+                        }
+
+                        <br />
+
+                    </>
+
+                )
+
+            }
+
+
+            {/* ==================================================
+                Current Members
+            ================================================== */}
 
             <h2>
-
                 Current Members
-
             </h2>
 
             <br />
+
 
             {
 
@@ -380,9 +650,7 @@ function TeamPage() {
                     (
 
                         <p>
-
                             No members found.
-
                         </p>
 
                     )
@@ -391,155 +659,165 @@ function TeamPage() {
 
                     (
 
-                        members.map((member) => (
-
-                            <div
-
-                                key={member.id}
-
-                                style={{
-
-                                    background: "#171b27",
-
-                                    padding: "20px",
-
-                                    borderRadius: "14px",
-
-                                    marginBottom: "15px",
-
-                                    display: "flex",
-
-                                    justifyContent: "space-between",
-
-                                    alignItems: "center"
-
-                                }}
-
-                            >
-
-                                <div>
-
-                                    <h3>
-
-                                        {member.name}
-
-                                    </h3>
-
-                                    <p>
-
-                                        {member.email}
-
-                                    </p>
-
-                                </div>
+                        members.map(
+                            (member) => (
 
                                 <div
 
+                                    key={
+                                        member.id
+                                    }
+
                                     style={{
-
-                                        display: "flex",
-
-                                        gap: "10px",
-
-                                        alignItems: "center"
-
+                                        background:
+                                            "#171b27",
+                                        padding:
+                                            "20px",
+                                        borderRadius:
+                                            "14px",
+                                        marginBottom:
+                                            "15px",
+                                        display:
+                                            "flex",
+                                        justifyContent:
+                                            "space-between",
+                                        alignItems:
+                                            "center",
+                                        gap: "20px"
                                     }}
 
                                 >
 
-                                    <select
+                                    {/* Member Information */}
 
-                                        value={member.role}
+                                    <div>
 
-                                        onChange={(e) =>
+                                        <h3>
 
-                                            handleRoleChange(
+                                            {
+                                                member.name
+                                            }
 
-                                                member.id,
+                                        </h3>
 
-                                                e.target.value
+                                        <p>
 
-                                            )
+                                            {
+                                                member.email
+                                            }
 
-                                        }
+                                        </p>
 
+                                    </div>
+
+
+                                    {/* Member Controls */}
+
+                                    <div
                                         style={{
-
-                                            padding: "10px",
-
-                                            borderRadius: "8px",
-
-                                            background: "#2d3653",
-
-                                            color: "white",
-
-                                            border: "none"
-
+                                            display:
+                                                "flex",
+                                            gap:
+                                                "10px",
+                                            alignItems:
+                                                "center"
                                         }}
-
                                     >
 
-                                        <option>
+                                        {/* Role */}
 
-                                            Owner
+                                        <select
 
-                                        </option>
+                                            value={
+                                                member.role
+                                            }
 
-                                        <option>
+                                            onChange={
 
-                                            Admin
+                                                (e) =>
 
-                                        </option>
+                                                    handleRoleChange(
 
-                                        <option>
+                                                        member.id,
 
-                                            Member
+                                                        e.target.value
 
-                                        </option>
+                                                    )
 
-                                    </select>
+                                            }
 
-                                    <button
+                                            style={{
+                                                padding:
+                                                    "10px",
+                                                borderRadius:
+                                                    "8px",
+                                                background:
+                                                    "#2d3653",
+                                                color:
+                                                    "white",
+                                                border:
+                                                    "none",
+                                                cursor:
+                                                    "pointer"
+                                            }}
 
-                                        onClick={() =>
+                                        >
 
-                                            handleRemoveMember(
+                                            <option value="Owner">
+                                                Owner
+                                            </option>
 
-                                                member.id
+                                            <option value="Admin">
+                                                Admin
+                                            </option>
 
-                                            )
+                                            <option value="Member">
+                                                Member
+                                            </option>
 
-                                        }
+                                        </select>
 
-                                        style={{
 
-                                            background: "#ef4444",
+                                        {/* Remove */}
 
-                                            border: "none",
+                                        <button
 
-                                            color: "white",
+                                            onClick={() =>
+                                                handleRemoveMember(
+                                                    member.id
+                                                )
+                                            }
 
-                                            padding: "10px 16px",
+                                            style={{
+                                                background:
+                                                    "#ef4444",
+                                                border:
+                                                    "none",
+                                                color:
+                                                    "white",
+                                                padding:
+                                                    "10px 16px",
+                                                borderRadius:
+                                                    "8px",
+                                                cursor:
+                                                    "pointer",
+                                                fontWeight:
+                                                    "600"
+                                            }}
 
-                                            borderRadius: "8px",
+                                        >
 
-                                            cursor: "pointer",
+                                            Remove
 
-                                            fontWeight: "600"
+                                        </button>
 
-                                        }}
-
-                                    >
-
-                                        Remove
-
-                                    </button>
+                                    </div>
 
                                 </div>
 
-                            </div>
+                            )
 
-                        ))
+                        )
 
                     )
 
@@ -551,5 +829,5 @@ function TeamPage() {
 
 }
 
-export default TeamPage;
 
+export default TeamPage;

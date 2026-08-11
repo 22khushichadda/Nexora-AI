@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.database.database import get_db
+
 from app.database.models import (
     Workspace,
-    WorkspaceMember
+    WorkspaceMember,
+    WorkspaceInvitation
 )
 
 from app.schemas.workspace import (
@@ -13,11 +15,17 @@ from app.schemas.workspace import (
     WorkspaceResponse
 )
 
-router = APIRouter(tags=["Workspace"])
+import secrets
+from datetime import datetime, timedelta
+
+
+router = APIRouter(
+    tags=["Workspace"]
+)
 
 
 # ======================================================
-# Member Request Model
+# Member / Invitation Request Model
 # ======================================================
 
 class MemberRequest(BaseModel):
@@ -32,10 +40,22 @@ class MemberRequest(BaseModel):
 
 
 # ======================================================
+# Role Update Request
+# ======================================================
+
+class RoleUpdateRequest(BaseModel):
+
+    role: str
+
+
+# ======================================================
 # Get All Workspaces
 # ======================================================
 
-@router.get("/workspace", response_model=list[WorkspaceResponse])
+@router.get(
+    "/workspace",
+    response_model=list[WorkspaceResponse]
+)
 def get_workspaces(
     db: Session = Depends(get_db)
 ):
@@ -47,17 +67,29 @@ def get_workspaces(
 # Get Workspace by ID
 # ======================================================
 
-@router.get("/workspace/{workspace_id}", response_model=WorkspaceResponse)
+@router.get(
+    "/workspace/{workspace_id}",
+    response_model=WorkspaceResponse
+)
 def get_workspace(
+
     workspace_id: int,
+
     db: Session = Depends(get_db)
+
 ):
 
-    workspace = db.query(Workspace).filter(
+    workspace = (
 
-        Workspace.id == workspace_id
+        db.query(Workspace)
 
-    ).first()
+        .filter(
+            Workspace.id == workspace_id
+        )
+
+        .first()
+
+    )
 
     if not workspace:
 
@@ -76,7 +108,10 @@ def get_workspace(
 # Create Workspace
 # ======================================================
 
-@router.post("/workspace", response_model=WorkspaceResponse)
+@router.post(
+    "/workspace",
+    response_model=WorkspaceResponse
+)
 def create_workspace(
 
     workspace: WorkspaceCreate,
@@ -106,7 +141,10 @@ def create_workspace(
 # Update Workspace
 # ======================================================
 
-@router.put("/workspace/{workspace_id}", response_model=WorkspaceResponse)
+@router.put(
+    "/workspace/{workspace_id}",
+    response_model=WorkspaceResponse
+)
 def update_workspace(
 
     workspace_id: int,
@@ -117,11 +155,17 @@ def update_workspace(
 
 ):
 
-    workspace = db.query(Workspace).filter(
+    workspace = (
 
-        Workspace.id == workspace_id
+        db.query(Workspace)
 
-    ).first()
+        .filter(
+            Workspace.id == workspace_id
+        )
+
+        .first()
+
+    )
 
     if not workspace:
 
@@ -148,7 +192,9 @@ def update_workspace(
 # Delete Workspace
 # ======================================================
 
-@router.delete("/workspace/{workspace_id}")
+@router.delete(
+    "/workspace/{workspace_id}"
+)
 def delete_workspace(
 
     workspace_id: int,
@@ -157,11 +203,17 @@ def delete_workspace(
 
 ):
 
-    workspace = db.query(Workspace).filter(
+    workspace = (
 
-        Workspace.id == workspace_id
+        db.query(Workspace)
 
-    ).first()
+        .filter(
+            Workspace.id == workspace_id
+        )
+
+        .first()
+
+    )
 
     if not workspace:
 
@@ -179,16 +231,19 @@ def delete_workspace(
 
     return {
 
-        "message": "Workspace deleted successfully"
+        "message":
+        "Workspace deleted successfully"
 
     }
 
 
 # ======================================================
-# Invite Member
+# Create Workspace Invitation
 # ======================================================
 
-@router.post("/workspace/member")
+@router.post(
+    "/workspace/member"
+)
 def add_member(
 
     request: MemberRequest,
@@ -197,25 +252,127 @@ def add_member(
 
 ):
 
-    existing = db.query(WorkspaceMember).filter(
+    # ------------------------------------------
+    # Check Workspace
+    # ------------------------------------------
 
-        WorkspaceMember.workspace_id == request.workspace_id,
+    workspace = (
 
-        WorkspaceMember.email == request.email
+        db.query(Workspace)
 
-    ).first()
+        .filter(
+            Workspace.id == request.workspace_id
+        )
 
-    if existing:
+        .first()
+
+    )
+
+    if not workspace:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Workspace not found."
+
+        )
+
+
+    # ------------------------------------------
+    # Check Existing Member
+    # ------------------------------------------
+
+    existing_member = (
+
+        db.query(WorkspaceMember)
+
+        .filter(
+
+            WorkspaceMember.workspace_id ==
+            request.workspace_id,
+
+            WorkspaceMember.email ==
+            request.email
+
+        )
+
+        .first()
+
+    )
+
+    if existing_member:
 
         raise HTTPException(
 
             status_code=400,
 
-            detail="Member already exists."
+            detail="This person is already a workspace member."
 
         )
 
-    member = WorkspaceMember(
+
+    # ------------------------------------------
+    # Check Pending Invitation
+    # ------------------------------------------
+
+    existing_invitation = (
+
+        db.query(WorkspaceInvitation)
+
+        .filter(
+
+            WorkspaceInvitation.workspace_id ==
+            request.workspace_id,
+
+            WorkspaceInvitation.email ==
+            request.email,
+
+            WorkspaceInvitation.status ==
+            "pending"
+
+        )
+
+        .first()
+
+    )
+
+    if existing_invitation:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="An invitation has already been sent to this email."
+
+        )
+
+
+    # ------------------------------------------
+    # Generate Unique Token
+    # ------------------------------------------
+
+    token = secrets.token_urlsafe(32)
+
+
+    # ------------------------------------------
+    # Invitation Expiry
+    # ------------------------------------------
+
+    expires_at = (
+
+        datetime.utcnow()
+
+        + timedelta(days=7)
+
+    )
+
+
+    # ------------------------------------------
+    # Create Invitation
+    # ------------------------------------------
+
+    invitation = WorkspaceInvitation(
 
         workspace_id=request.workspace_id,
 
@@ -223,29 +380,65 @@ def add_member(
 
         email=request.email,
 
-        role=request.role
+        role=request.role,
+
+        token=token,
+
+        status="pending",
+
+        expires_at=expires_at
 
     )
 
-    db.add(member)
+
+    db.add(invitation)
 
     db.commit()
 
-    db.refresh(member)
+    db.refresh(invitation)
+
+
+    # ------------------------------------------
+    # Temporary Response
+    # ------------------------------------------
+    #
+    # IMPORTANT:
+    # We are NOT sending an email yet.
+    #
+    # This token will later be included
+    # in the actual email invitation link.
+    # ------------------------------------------
 
     return {
 
-        "message": "Member added successfully.",
+        "message":
+        "Invitation created successfully.",
 
-        "member_id": member.id
+        "invitation_id":
+        invitation.id,
+
+        "status":
+        invitation.status,
+
+        "email":
+        invitation.email,
+
+        "token":
+        invitation.token,
+
+        "expires_at":
+        invitation.expires_at
 
     }
 
-    # ======================================================
+
+# ======================================================
 # Get Workspace Members
 # ======================================================
 
-@router.get("/workspace/members/{workspace_id}")
+@router.get(
+    "/workspace/members/{workspace_id}"
+)
 def get_members(
 
     workspace_id: int,
@@ -260,7 +453,8 @@ def get_members(
 
         .filter(
 
-            WorkspaceMember.workspace_id == workspace_id
+            WorkspaceMember.workspace_id ==
+            workspace_id
 
         )
 
@@ -274,19 +468,25 @@ def get_members(
 
     )
 
+
     return [
 
         {
 
-            "id": member.id,
+            "id":
+            member.id,
 
-            "name": member.name,
+            "name":
+            member.name,
 
-            "email": member.email,
+            "email":
+            member.email,
 
-            "role": member.role,
+            "role":
+            member.role,
 
-            "joined_at": member.joined_at
+            "joined_at":
+            member.joined_at
 
         }
 
@@ -294,11 +494,14 @@ def get_members(
 
     ]
 
-    # ======================================================
+
+# ======================================================
 # Remove Member
 # ======================================================
 
-@router.delete("/workspace/member/{member_id}")
+@router.delete(
+    "/workspace/member/{member_id}"
+)
 def remove_member(
 
     member_id: int,
@@ -313,13 +516,15 @@ def remove_member(
 
         .filter(
 
-            WorkspaceMember.id == member_id
+            WorkspaceMember.id ==
+            member_id
 
         )
 
         .first()
 
     )
+
 
     if not member:
 
@@ -331,27 +536,27 @@ def remove_member(
 
         )
 
+
     db.delete(member)
 
     db.commit()
 
+
     return {
 
-        "message": "Member removed successfully."
+        "message":
+        "Member removed successfully."
 
     }
 
 
-    # ======================================================
+# ======================================================
 # Update Member Role
 # ======================================================
 
-class RoleUpdateRequest(BaseModel):
-
-    role: str
-
-
-@router.put("/workspace/member/{member_id}")
+@router.put(
+    "/workspace/member/{member_id}"
+)
 def update_member_role(
 
     member_id: int,
@@ -368,13 +573,15 @@ def update_member_role(
 
         .filter(
 
-            WorkspaceMember.id == member_id
+            WorkspaceMember.id ==
+            member_id
 
         )
 
         .first()
 
     )
+
 
     if not member:
 
@@ -386,14 +593,53 @@ def update_member_role(
 
         )
 
+
     member.role = request.role
 
     db.commit()
 
     db.refresh(member)
 
+
     return {
 
-        "message": "Role updated successfully."
+        "message":
+        "Role updated successfully."
 
     }
+
+
+    # ======================================================
+# Get Pending Workspace Invitations
+# ======================================================
+
+@router.get("/workspace/invitations/{workspace_id}")
+def get_invitations(
+    workspace_id: int,
+    db: Session = Depends(get_db)
+):
+
+    invitations = (
+        db.query(WorkspaceInvitation)
+        .filter(
+            WorkspaceInvitation.workspace_id == workspace_id,
+            WorkspaceInvitation.status == "pending"
+        )
+        .order_by(
+            WorkspaceInvitation.created_at.desc()
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": invitation.id,
+            "name": invitation.name,
+            "email": invitation.email,
+            "role": invitation.role,
+            "status": invitation.status,
+            "expires_at": invitation.expires_at,
+            "created_at": invitation.created_at
+        }
+        for invitation in invitations
+    ]
