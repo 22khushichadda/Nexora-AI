@@ -2,7 +2,6 @@ import os
 import smtplib
 
 from email.message import EmailMessage
-
 from dotenv import load_dotenv
 
 
@@ -11,6 +10,11 @@ load_dotenv()
 
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:5173"
+)
 
 
 def send_invitation_email(
@@ -26,19 +30,17 @@ def send_invitation_email(
             "SMTP_EMAIL or SMTP_PASSWORD is missing from .env"
         )
 
-
-    # --------------------------------------------------
+    # ==================================================
     # Invitation Link
-    # --------------------------------------------------
+    # ==================================================
 
     invitation_link = (
-        f"http://localhost:5173/invite/{invitation_token}"
+        f"{FRONTEND_URL.rstrip('/')}/invite/{invitation_token}"
     )
 
-
-    # --------------------------------------------------
+    # ==================================================
     # Email
-    # --------------------------------------------------
+    # ==================================================
 
     message = EmailMessage()
 
@@ -49,7 +51,6 @@ def send_invitation_email(
     message["From"] = SMTP_EMAIL
 
     message["To"] = recipient_email
-
 
     message.set_content(
 
@@ -66,13 +67,11 @@ This invitation will expire in 7 days.
 Regards,
 Nexora AI
 """
-
     )
 
-
-    # --------------------------------------------------
+    # ==================================================
     # Send Email
-    # --------------------------------------------------
+    # ==================================================
 
     with smtplib.SMTP(
         "smtp.gmail.com",
@@ -87,6 +86,5 @@ Nexora AI
         )
 
         server.send_message(message)
-
 
     return True

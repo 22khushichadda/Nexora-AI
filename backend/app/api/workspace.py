@@ -816,3 +816,144 @@ def get_invitation_by_token(
         invitation.expires_at
 
     }
+
+    # ======================================================
+# Accept Workspace Invitation
+# ======================================================
+
+@router.post(
+    "/workspace/invitation/{token}/accept"
+)
+def accept_invitation(
+
+    token: str,
+
+    db: Session = Depends(get_db)
+
+):
+
+    invitation = (
+
+        db.query(WorkspaceInvitation)
+
+        .filter(
+            WorkspaceInvitation.token == token
+        )
+
+        .first()
+
+    )
+
+    # ------------------------------------------
+    # Invitation Not Found
+    # ------------------------------------------
+
+    if not invitation:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Invitation not found."
+        )
+
+    # ------------------------------------------
+    # Already Accepted / Invalid Status
+    # ------------------------------------------
+
+    if invitation.status != "pending":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This invitation is no longer active."
+        )
+
+    # ------------------------------------------
+    # Check Expiry
+    # ------------------------------------------
+
+    if (
+        invitation.expires_at
+        and invitation.expires_at < datetime.utcnow()
+    ):
+
+        invitation.status = "expired"
+
+        db.commit()
+
+        raise HTTPException(
+            status_code=400,
+            detail="This invitation has expired."
+        )
+
+    # ------------------------------------------
+    # Check Existing Member
+    # ------------------------------------------
+
+    existing_member = (
+
+        db.query(WorkspaceMember)
+
+        .filter(
+
+            WorkspaceMember.workspace_id ==
+            invitation.workspace_id,
+
+            WorkspaceMember.email ==
+            invitation.email
+
+        )
+
+        .first()
+
+    )
+
+    if existing_member:
+
+        invitation.status = "accepted"
+
+        db.commit()
+
+        return {
+            "message":
+            "You are already a member of this workspace."
+        }
+
+    # ------------------------------------------
+    # Create Workspace Member
+    # ------------------------------------------
+
+    member = WorkspaceMember(
+
+        workspace_id=invitation.workspace_id,
+
+        name=invitation.name,
+
+        email=invitation.email,
+
+        role=invitation.role
+
+    )
+
+    db.add(member)
+
+    # ------------------------------------------
+    # Mark Invitation Accepted
+    # ------------------------------------------
+
+    invitation.status = "accepted"
+
+    db.commit()
+
+    db.refresh(member)
+
+    return {
+
+        "message":
+        "Invitation accepted successfully.",
+
+        "member_id":
+        member.id,
+
+        "workspace_id":
+        member.workspace_id
+
+    }

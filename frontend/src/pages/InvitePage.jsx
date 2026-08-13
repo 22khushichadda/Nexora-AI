@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import DashboardLayout from "../layouts/DashboardLayout";
-
-import axios from "axios";
+import API from "../services/api";
 
 
 function InvitePage() {
@@ -29,10 +28,8 @@ function InvitePage() {
 
             try {
 
-                const response = await axios.get(
-
-                    `http://127.0.0.1:8000/workspace/invitation/${token}`
-
+                const response = await API.get(
+                    `/workspace/invitation/${token}`
                 );
 
                 setInvitation(response.data);
@@ -47,11 +44,8 @@ function InvitePage() {
                 );
 
                 setError(
-
                     err.response?.data?.detail ||
-
                     "This invitation is invalid or has expired."
-
                 );
 
             }
@@ -63,7 +57,6 @@ function InvitePage() {
             }
 
         };
-
 
         loadInvitation();
 
@@ -82,18 +75,14 @@ function InvitePage() {
 
             setError("");
 
-
-            const response = await axios.post(
-
-                `http://127.0.0.1:8000/workspace/invitation/${token}/accept`
-
+            const response = await API.post(
+                `/workspace/invitation/${token}/accept`
             );
-
 
             alert(
-                response.data.message
+                response.data.message ||
+                "Invitation accepted successfully."
             );
-
 
             window.location.href = "/team";
 
@@ -107,11 +96,8 @@ function InvitePage() {
             );
 
             setError(
-
                 err.response?.data?.detail ||
-
                 "Unable to accept invitation."
-
             );
 
         }
@@ -135,10 +121,12 @@ function InvitePage() {
 
             <DashboardLayout>
 
-                <div style={{
-                    padding: "40px",
-                    color: "white"
-                }}>
+                <div
+                    style={{
+                        padding: "40px",
+                        color: "white"
+                    }}
+                >
 
                     Loading invitation...
 
