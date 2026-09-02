@@ -7,7 +7,8 @@ from app.database.database import get_db
 from app.database.models import (
     Workspace,
     WorkspaceMember,
-    WorkspaceInvitation
+    WorkspaceInvitation,
+    User
 )
 
 from app.schemas.workspace import (
@@ -282,72 +283,44 @@ def add_member(
 
 
     # ------------------------------------------
-    # Check Existing Member
+    # Check Existing Member (TEMPORARY TESTING BYPASS)
     # ------------------------------------------
 
-    existing_member = (
-
-        db.query(WorkspaceMember)
-
-        .filter(
-
-            WorkspaceMember.workspace_id ==
-            request.workspace_id,
-
-            WorkspaceMember.email ==
-            request.email
-
-        )
-
-        .first()
-
-    )
-
-    if existing_member:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="This person is already a workspace member."
-
-        )
+    # TEMPORARY TESTING: allow duplicate invitations for same email
+    # existing_member = (
+    #     db.query(WorkspaceMember)
+    #     .filter(
+    #         WorkspaceMember.workspace_id == request.workspace_id,
+    #         WorkspaceMember.email == request.email
+    #     )
+    #     .first()
+    # )
+    # if existing_member:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="This person is already a workspace member."
+    #     )
 
 
     # ------------------------------------------
-    # Check Pending Invitation
+    # Check Pending Invitation (TEMPORARY TESTING BYPASS)
     # ------------------------------------------
 
-    existing_invitation = (
-
-        db.query(WorkspaceInvitation)
-
-        .filter(
-
-            WorkspaceInvitation.workspace_id ==
-            request.workspace_id,
-
-            WorkspaceInvitation.email ==
-            request.email,
-
-            WorkspaceInvitation.status ==
-            "pending"
-
-        )
-
-        .first()
-
-    )
-
-    if existing_invitation:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="An invitation has already been sent to this email."
-
-        )
+    # TEMPORARY TESTING: allow duplicate invitations for same email
+    # existing_invitation = (
+    #     db.query(WorkspaceInvitation)
+    #     .filter(
+    #         WorkspaceInvitation.workspace_id == request.workspace_id,
+    #         WorkspaceInvitation.email == request.email,
+    #         WorkspaceInvitation.status == "pending"
+    #     )
+    #     .first()
+    # )
+    # if existing_invitation:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="An invitation has already been sent to this email."
+    #     )
 
 
     # ------------------------------------------
@@ -918,6 +891,16 @@ def accept_invitation(
         }
 
     # ------------------------------------------
+    # Find matching User account if exists
+    # ------------------------------------------
+
+    matching_user = (
+        db.query(User)
+        .filter(User.email == invitation.email)
+        .first()
+    )
+
+    # ------------------------------------------
     # Create Workspace Member
     # ------------------------------------------
 
@@ -929,7 +912,9 @@ def accept_invitation(
 
         email=invitation.email,
 
-        role=invitation.role
+        role=invitation.role,
+
+        user_id=matching_user.id if matching_user else None
 
     )
 

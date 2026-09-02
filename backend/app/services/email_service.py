@@ -34,8 +34,10 @@ def send_invitation_email(
     # Invitation Link
     # ==================================================
 
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
     invitation_link = (
-        f"{FRONTEND_URL.rstrip('/')}/invite/{invitation_token}"
+        f"{frontend_url.rstrip('/')}/invite/{invitation_token}"
     )
 
     # ==================================================

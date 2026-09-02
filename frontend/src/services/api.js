@@ -4,7 +4,42 @@ const API = axios.create({
     baseURL: ""
 });
 
+API.interceptors.request.use((config) => {
+    const token = localStorage.getItem("nexora_token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 export const WORKSPACE_ID = 7;
+
+// ----------------------
+// Auth API Functions
+// ----------------------
+
+export const registerUser = async (userData) => {
+    const response = await API.post("/auth/register", userData);
+    return response.data;
+};
+
+export const loginUser = async (credentials) => {
+    const response = await API.post("/auth/login", credentials);
+    return response.data;
+};
+
+export const getCurrentUser = async () => {
+    const response = await API.get("/auth/me");
+    return response.data;
+};
+
+export const logoutUser = async () => {
+    try {
+        await API.post("/auth/logout");
+    } catch (e) {
+        // ignore logout errors
+    }
+};
 
 
 // ----------------------
@@ -95,6 +130,28 @@ export const getDocuments = async () => {
     const response = await API.get(
 
         `/documents/${WORKSPACE_ID}`
+
+    );
+
+    return response.data;
+
+};
+
+// ----------------------
+// Delete Document
+// ----------------------
+
+export const deleteDocument = async (documentId, userEmail = null) => {
+
+    const response = await API.delete(
+
+        `/documents/${documentId}`,
+
+        {
+
+            params: { user_email: userEmail }
+
+        }
 
     );
 

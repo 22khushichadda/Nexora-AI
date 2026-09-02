@@ -5,10 +5,12 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import {
     FileText,
     CheckCircle,
-    Clock
+    Clock,
+    Trash2,
+    Users
 } from "lucide-react";
 
-import { getDocuments } from "../services/api";
+import { getDocuments, deleteDocument } from "../services/api";
 
 import "../styles/documents.css";
 
@@ -42,6 +44,35 @@ function Documents() {
         catch (err) {
 
             console.log(err);
+
+        }
+
+    };
+
+    const handleDeleteDocument = async (docId) => {
+
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this document?"
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+
+            await deleteDocument(docId);
+
+            await fetchDocuments();
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            alert(
+                err.response?.data?.detail ||
+                "Unable to delete document."
+            );
 
         }
 
@@ -391,6 +422,47 @@ function Documents() {
 
                                                     </span>
 
+                                                    {/* ---------------- Shared Badge ---------------- */}
+
+                                                    <span className="document-badge" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+
+                                                        <Users size={14} /> Shared
+
+                                                    </span>
+
+                                                    {/* ---------------- Delete Button ---------------- */}
+
+                                                    <button
+
+                                                        onClick={() => handleDeleteDocument(doc.id)}
+
+                                                        title="Delete Document"
+
+                                                        style={{
+
+                                                            background: "transparent",
+
+                                                            border: "none",
+
+                                                            color: "#ef4444",
+
+                                                            cursor: "pointer",
+
+                                                            padding: "4px",
+
+                                                            marginLeft: "auto",
+
+                                                            display: "inline-flex",
+
+                                                            alignItems: "center"
+
+                                                        }}
+
+                                                    >
+
+                                                        <Trash2 size={16} />
+
+                                                    </button>
 
                                                 </div>
 

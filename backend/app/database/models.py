@@ -4,6 +4,7 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
+    Boolean,
     DateTime,
     ForeignKey
 )
@@ -16,6 +17,49 @@ from sqlalchemy.orm import (
 
 class Base(DeclarativeBase):
     pass
+
+
+# ======================================================
+# Users Table
+# ======================================================
+
+class User(Base):
+
+    __tablename__ = "users"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    name = Column(
+        String(100),
+        nullable=False
+    )
+
+    email = Column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=False
+    )
+
+    password_hash = Column(
+        String(255),
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    memberships = relationship(
+        "WorkspaceMember",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
 
 # ======================================================
@@ -146,10 +190,21 @@ class Document(Base):
         default="Nexora User"
     )
 
+    is_shared = Column(
+        Boolean,
+        default=True
+    )
+
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id"),
         nullable=False
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True
     )
 
     workspace = relationship(
@@ -176,6 +231,12 @@ class Conversation(Base):
         Integer,
         ForeignKey("workspaces.id"),
         nullable=False
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True
     )
 
     workspace = relationship(
@@ -280,6 +341,12 @@ class Bookmark(Base):
         default=datetime.utcnow
     )
 
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True
+    )
+
     message = relationship(
         "Message",
         back_populates="bookmarks"
@@ -326,9 +393,20 @@ class WorkspaceMember(Base):
         default=datetime.utcnow
     )
 
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True
+    )
+
     workspace = relationship(
         "Workspace",
         back_populates="members"
+    )
+
+    user = relationship(
+        "User",
+        back_populates="memberships"
     )
 
 

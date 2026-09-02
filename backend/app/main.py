@@ -11,6 +11,7 @@ from app.database.models import Base
 from app.api.workspace import router as workspace_router
 from app.api.document import router as document_router
 from app.api.chat import router as chat_router
+from app.api.auth import router as auth_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,12 +25,18 @@ app = FastAPI(
 # CORS
 # ---------------------------------
 
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+if frontend_url and frontend_url not in origins:
+    origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=origins,
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,6 +60,7 @@ app.mount(
 # Routers
 # ---------------------------------
 
+app.include_router(auth_router)
 app.include_router(workspace_router)
 app.include_router(document_router)
 app.include_router(chat_router)

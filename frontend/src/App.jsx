@@ -1,5 +1,7 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-
+import { AuthProvider } from "./components/context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
 import BookmarksPage from "./pages/BookmarksPage";
@@ -10,46 +12,75 @@ import InvitePage from "./pages/InvitePage";
 
 function App() {
   return (
-    <Routes>
+    <AuthProvider>
+      <Routes>
 
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-      <Route
-        path="/dashboard"
-        element={<Dashboard />}
-      />
+        {/* Auth Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
-      <Route
-        path="/documents"
-        element={<Documents />}
-      />
+        {/* Public Invitation Route (Mobile Invite Links) */}
+        <Route path="/invite/:token" element={<InvitePage />} />
 
-      <Route
-        path="/bookmarks"
-        element={<BookmarksPage />}
-      />
+        {/* Protected Application Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/history"
-        element={<HistoryPage />}
-      />
+        <Route
+          path="/documents"
+          element={
+            <ProtectedRoute>
+              <Documents />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/viewer/:id"
-        element={<PdfViewer />}
-      />
+        <Route
+          path="/bookmarks"
+          element={
+            <ProtectedRoute>
+              <BookmarksPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-    path="/team"
-    element={<TeamPage />}
-/>
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
 
-<Route
-    path="/invite/:token"
-    element={<InvitePage />}
-/>
+        <Route
+          path="/viewer/:id"
+          element={
+            <ProtectedRoute>
+              <PdfViewer />
+            </ProtectedRoute>
+          }
+        />
 
-    </Routes>
+        <Route
+          path="/team"
+          element={
+            <ProtectedRoute>
+              <TeamPage />
+            </ProtectedRoute>
+          }
+        />
+
+      </Routes>
+    </AuthProvider>
   );
 }
 

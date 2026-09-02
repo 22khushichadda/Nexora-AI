@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 import API from "../services/api";
+import { useAuth } from "../components/context/AuthContext";
 
 
 function InvitePage() {
 
     const { token } = useParams();
+    const { user, isAuthenticated } = useAuth();
 
     const [invitation, setInvitation] = useState(null);
 
@@ -339,6 +341,19 @@ function InvitePage() {
                     }
 
                 </button>
+
+                {!isAuthenticated && (
+                    <div style={{ marginTop: "20px", fontSize: "14px", color: "#aeb7d0" }}>
+                        New to Nexora AI?{" "}
+                        <Link to="/signup" style={{ color: "#818cf8", textDecoration: "none", fontWeight: "600" }}>
+                            Sign Up
+                        </Link>{" "}
+                        or{" "}
+                        <Link to="/login" style={{ color: "#818cf8", textDecoration: "none", fontWeight: "600" }}>
+                            Login
+                        </Link>
+                    </div>
+                )}
 
             </div>
 

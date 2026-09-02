@@ -3,7 +3,8 @@ from fastapi import (
     UploadFile,
     File,
     Depends,
-    BackgroundTasks
+    BackgroundTasks,
+    HTTPException
 )
 
 from sqlalchemy.orm import Session
@@ -12,7 +13,7 @@ import os
 import shutil
 
 from app.database.database import get_db
-from app.database.models import Document
+from app.database.models import Document, WorkspaceMember
 from app.schemas.document import DocumentResponse
 
 from app.services.pdf_service import extract_pdf_data
@@ -228,3 +229,91 @@ def document_status(
         "status": document.status
 
     }
+
+
+# ======================================================
+# Delete Document
+# ======================================================
+
+@router.delete(
+    "/documents/{document_id}"
+)
+def delete_document(
+
+    document_id: int,
+
+    user_email: str | None = None,
+
+    db: Session = Depends(get_db)
+
+):
+
+    document = (
+
+        db.query(Document)
+
+        .filter(
+
+            Document.id == document_id
+
+        )
+
+        .first()
+
+    )
+
+    if not document:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Document not found."
+
+        )
+
+    if user_email:
+
+        member = (
+
+            db.query(WorkspaceMember)
+
+            .filter(
+
+                WorkspaceMember.workspace_id == document.workspace_id,
+
+                WorkspaceMember.email == user_email
+
+            )
+
+            .first()
+
+        )
+
+        if (
+
+            member
+
+            and member.role not in ["Owner", "Admin"]
+
+            and document.uploaded_by != member.name
+
+        ):
+
+            raise HTTPException(
+
+                status_code=403,
+
+                detail="Permission denied. Only Owners, Admins, or the uploader can delete documents."
+
+            )
+
+    db.delete(document)
+
+    db.commit()
+
+    return {
+
+        "message": "Document deleted successfully."
+
+    }

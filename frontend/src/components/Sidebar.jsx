@@ -7,14 +7,17 @@ import {
     Bookmark,
     History,
     Plus,
-    Users
+    Users,
+    LogOut
 } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
 
 import "../styles/sidebar.css";
 
 function Sidebar() {
 
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
 
     const handleNewChat = () => {
 
@@ -24,6 +27,20 @@ function Sidebar() {
         // Later we'll connect this to ChatBox
         window.location.reload();
 
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate("/login");
+    };
+
+    const getInitials = (name) => {
+        if (!name) return "NU";
+        const parts = name.trim().split(" ");
+        if (parts.length >= 2) {
+            return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+        }
+        return name.slice(0, 2).toUpperCase();
     };
 
     return (
@@ -180,19 +197,61 @@ function Sidebar() {
 
                 </button>
 
-                <div className="user-card">
+                <div className="user-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
 
-                    <div className="avatar">
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
 
-                        NU
+                        <div className="avatar">
+
+                            {getInitials(user?.name)}
+
+                        </div>
+
+                        <div style={{ overflow: "hidden" }}>
+
+                            <h4 style={{ textOverflow: "ellipsis", overflow: "hidden", whitespace: "nowrap", margin: 0 }}>
+                                {user?.name || "Nexora User"}
+                            </h4>
+
+                            {user?.email && (
+                                <p style={{ fontSize: "11px", color: "#aeb7d0", margin: 0, textOverflow: "ellipsis", overflow: "hidden", whitespace: "nowrap" }}>
+                                    {user.email}
+                                </p>
+                            )}
+
+                        </div>
 
                     </div>
 
-                    <div>
+                    <button
 
-                        <h4>Nexora User</h4>
+                        onClick={handleLogout}
 
-                    </div>
+                        title="Logout"
+
+                        style={{
+
+                            background: "transparent",
+
+                            border: "none",
+
+                            color: "#aeb7d0",
+
+                            cursor: "pointer",
+
+                            padding: "6px",
+
+                            display: "flex",
+
+                            alignItems: "center"
+
+                        }}
+
+                    >
+
+                        <LogOut size={18} />
+
+                    </button>
 
                 </div>
 

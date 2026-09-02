@@ -18,6 +18,8 @@ class DocumentResponse(BaseModel):
 
     uploaded_by: str | None
 
+    is_shared: bool | None = True
+
     workspace_id: int
 
     class Config:
