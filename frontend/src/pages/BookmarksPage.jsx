@@ -16,7 +16,11 @@ function BookmarksPage() {
   const loadBookmarks = async () => {
     try {
       const data = await getBookmarks();
-      setBookmarks(data);
+      // Sort descending (newest date first)
+      const sorted = [...(data || [])].sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+      setBookmarks(sorted);
     } catch (err) {
       console.log("Bookmarks load error:", err);
     }
@@ -50,9 +54,9 @@ function BookmarksPage() {
       <PageTransition>
         <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
           <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>📌 Bookmarked Insights</h1>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Bookmarked Insights</h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
-              Quick access to your saved AI research responses and citations
+              Quick access to your saved research responses
             </p>
           </div>
 

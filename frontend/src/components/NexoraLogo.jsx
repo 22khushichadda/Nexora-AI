@@ -50,7 +50,7 @@ function NexoraLogo({ size = "md", showBadge = true, collapsed = false }) {
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 fontWeight: 800,
                 fontSize: dimensions.font,
                 letterSpacing: "-0.03em",

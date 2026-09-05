@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
-import { Users, UserPlus, Shield, Trash2, Mail, Clock, CheckCircle } from "lucide-react";
+import { Users, UserPlus, Shield, Trash2, Mail, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
   getMembers,
   getInvitations,
@@ -18,6 +18,7 @@ function TeamPage() {
   const [role, setRole] = useState("Member");
   const [loading, setLoading] = useState(false);
   const [inviteMessage, setInviteMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState([]);
 
   useEffect(() => {
@@ -45,7 +46,8 @@ function TeamPage() {
 
   const handleAddMember = async () => {
     if (!name.trim() || !email.trim()) {
-      setInviteMessage("❌ Please fill in both name and email.");
+      setIsSuccess(false);
+      setInviteMessage("Please fill in both name and email.");
       return;
     }
 
@@ -67,10 +69,12 @@ function TeamPage() {
       await loadMembers();
       await loadInvitations();
 
-      setInviteMessage(`✅ ${response.message || "Invitation created successfully."}`);
+      setIsSuccess(true);
+      setInviteMessage(response.message || "Invitation created successfully.");
     } catch (err) {
       console.log("Invite error:", err);
-      setInviteMessage(err.response?.data?.detail || "❌ Unable to create invitation.");
+      setIsSuccess(false);
+      setInviteMessage(err.response?.data?.detail || "Unable to create invitation.");
     } finally {
       setLoading(false);
     }
@@ -111,7 +115,7 @@ function TeamPage() {
         <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
           {/* Header */}
           <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>👥 Team & Members</h1>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Team & Members</h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
               Invite colleagues and manage workspace permissions
             </p>
@@ -208,10 +212,14 @@ function TeamPage() {
                   marginTop: "14px",
                   fontSize: "0.88rem",
                   fontWeight: 600,
-                  color: inviteMessage.startsWith("✅") ? "#16A34A" : "#DC2626"
+                  color: isSuccess ? "#16A34A" : "#DC2626",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
                 }}
               >
-                {inviteMessage}
+                {isSuccess ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                <span>{inviteMessage}</span>
               </p>
             )}
           </div>
@@ -220,7 +228,7 @@ function TeamPage() {
           {pendingInvitations.length > 0 && (
             <div style={{ marginBottom: "30px" }}>
               <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "14px" }}>
-                ⏳ Pending Invitations ({pendingInvitations.length})
+                Pending Invitations ({pendingInvitations.length})
               </h2>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -243,7 +251,7 @@ function TeamPage() {
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span className="badge badge-amber">
+                      <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                         <Clock size={12} /> Pending
                       </span>
                       <span className={`badge ${getRoleBadgeClass(inv.role)}`}>

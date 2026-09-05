@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Bookmark, Copy, Check, FileText, Bot, User } from "lucide-react";
+import { Bookmark, Copy, Check, Bot, User } from "lucide-react";
 import { addBookmark } from "../services/api";
 import "../styles/message.css";
 
-function Message({ sender, text, sources, messageId }) {
+function Message({ sender, text, messageId }) {
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -39,39 +39,23 @@ function Message({ sender, text, sources, messageId }) {
       <div className="bubble">
         <ReactMarkdown>{safeText}</ReactMarkdown>
 
-        {/* Sources Section */}
-        {sender === "ai" && Array.isArray(sources) && sources.length > 0 && (
-          <div className="sources">
-            <h4>Sources & Citations</h4>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-              {sources.map((source, index) => {
-                const srcStr = typeof source === "string" ? source : JSON.stringify(source);
-                return (
-                  <div key={index} className="source-item">
-                    <FileText size={13} />
-                    <span>{srcStr}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Action Controls */}
+        {/* Action Controls (Bookmark & Copy) below AI Answer ONLY */}
         {sender === "ai" && (
           <div className="message-actions">
-            {messageId && (
-              <button className="bookmark-btn" onClick={handleBookmark}>
-                <Bookmark
-                  size={14}
-                  fill={bookmarked ? "#8B5CF6" : "none"}
-                  color={bookmarked ? "#8B5CF6" : "currentColor"}
-                />
-                <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
-              </button>
-            )}
+            <button
+              className={`bookmark-btn ${bookmarked ? "active" : ""}`}
+              onClick={handleBookmark}
+              title="Bookmark Answer"
+            >
+              <Bookmark
+                size={14}
+                fill={bookmarked ? "#8B5CF6" : "none"}
+                color={bookmarked ? "#8B5CF6" : "currentColor"}
+              />
+              <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
+            </button>
 
-            <button className="copy-btn" onClick={handleCopy}>
+            <button className="copy-btn" onClick={handleCopy} title="Copy Answer">
               {copied ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
               <span>{copied ? "Copied" : "Copy"}</span>
             </button>

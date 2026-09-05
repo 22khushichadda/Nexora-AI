@@ -23,8 +23,6 @@ function ChatBox({ conversation, onSelectPrompt }) {
 
   // Load conversation state if passed
   useEffect(() => {
-    loadLatestDocument();
-
     if (conversation) {
       setConversationId(conversation.conversation_id);
       setMessages(conversation.messages || []);
@@ -37,20 +35,6 @@ function ChatBox({ conversation, onSelectPrompt }) {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Load Latest Uploaded Document
-  const loadLatestDocument = async () => {
-    try {
-      const docs = await getDocuments();
-      if (docs.length > 0) {
-        const latest = docs[docs.length - 1];
-        setUploadedFile(latest.filename);
-        setDocumentReady(true);
-      }
-    } catch (err) {
-      console.log("Error loading latest doc:", err);
-    }
-  };
-
   // Poll Document Status
   useEffect(() => {
     if (!processing) return;
@@ -61,7 +45,6 @@ function ChatBox({ conversation, onSelectPrompt }) {
         if (response.status === "ready") {
           setProcessing(false);
           setDocumentReady(true);
-          await loadLatestDocument();
 
           setMessages((prev) => [
             ...prev,
@@ -69,7 +52,6 @@ function ChatBox({ conversation, onSelectPrompt }) {
               id: response.message_id,
               sender: "ai",
               text: response.answer,
-              sources: response.sources || [],
             },
           ]);
           clearInterval(interval);
@@ -98,7 +80,7 @@ function ChatBox({ conversation, onSelectPrompt }) {
         ...prev,
         {
           sender: "ai",
-          text: `📄 **"${file.name}"** uploaded successfully.\n\n🧠 Nexora AI is analyzing your document...`,
+          text: "Document uploaded successfully.\n\nAnalyzing the document...",
         },
       ]);
     } catch (err) {
@@ -124,7 +106,7 @@ function ChatBox({ conversation, onSelectPrompt }) {
         ...prev,
         {
           sender: "ai",
-          text: "🧠 Please upload a document first or wait for the current document to finish processing.",
+          text: "Please upload a document first or wait for the current document to finish processing.",
         },
       ]);
       return;
@@ -153,9 +135,9 @@ function ChatBox({ conversation, onSelectPrompt }) {
       setMessages((prev) => [
         ...prev,
         {
+          id: Date.now(),
           sender: "ai",
           text: response.answer,
-          sources: response.sources || [],
         },
       ]);
     } catch (err) {
@@ -197,7 +179,7 @@ function ChatBox({ conversation, onSelectPrompt }) {
                 <Sparkles size={32} />
               </div>
               <h3>Nexora AI Workspace</h3>
-              <p>Ask questions, discover insights, and analyze your research documents faster.</p>
+              <p>Upload a document to get started, ask questions, and analyze research documents.</p>
 
               <div className="suggestions-grid" style={{ width: "100%", marginTop: "12px" }}>
                 {suggestionPrompts.map((item, idx) => {
@@ -219,7 +201,7 @@ function ChatBox({ conversation, onSelectPrompt }) {
             </div>
           )}
 
-          {/* Attached File Pill */}
+          {/* Attached File Pill - ONLY shown when user actually selects/uploads a file */}
           {uploadedFile && (
             <div className="attached-file">
               <div className="file-left">
@@ -250,7 +232,6 @@ function ChatBox({ conversation, onSelectPrompt }) {
               messageId={msg.id}
               sender={msg.sender}
               text={msg.text}
-              sources={msg.sources}
             />
           ))}
 
@@ -289,7 +270,7 @@ function ChatBox({ conversation, onSelectPrompt }) {
               value={question}
               placeholder={
                 processing
-                  ? "Nexora AI is processing your document..."
+                  ? "Analyzing the document..."
                   : "Ask Nexora anything about your documents..."
               }
               disabled={processing}
