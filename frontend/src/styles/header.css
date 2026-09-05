@@ -75,12 +75,88 @@
   box-shadow: 0 0 8px #10B981;
 }
 
+.mobile-name {
+  display: none;
+}
+
+.mobile-subtitle {
+  display: none;
+}
+
+.desktop-name {
+  display: inline;
+}
+
+.desktop-subtitle {
+  display: inline;
+}
+
 @media (max-width: 900px) {
   .header {
-    padding: 12px 18px;
+    padding: 10px 14px;
+    gap: 8px;
   }
 
   .mobile-menu-btn {
     display: flex;
+    padding: 6px;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .header-title {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .header-title h1 {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-title p {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-name {
+    display: inline;
+  }
+
+  .desktop-name {
+    display: none;
+  }
+
+  .mobile-subtitle {
+    display: inline;
+  }
+
+  .desktop-subtitle {
+    display: none;
+  }
+
+  .header-right {
+    flex-shrink: 0;
+  }
+
+  .status-pill {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .status-pill svg {
+    width: 11px;
+    height: 11px;
   }
 }

@@ -8,6 +8,11 @@ function Message({ sender, text, messageId }) {
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Safeguard: Do not render empty or whitespace-only messages
+  if (!text || (typeof text === "string" && !text.trim())) {
+    return null;
+  }
+
   const safeText =
     typeof text === "string"
       ? text

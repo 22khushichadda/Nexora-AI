@@ -4,6 +4,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
 import { History, MessageSquare, Clock, ArrowRight } from "lucide-react";
 import { getHistory, getConversation } from "../services/api";
+import "../styles/history.css";
 
 function HistoryPage() {
   const navigate = useNavigate();
@@ -20,7 +21,40 @@ function HistoryPage() {
       const sorted = [...(data || [])].sort(
         (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
       );
-      setHistory(sorted);
+
+      // Fetch preview text & user prompt for each history item
+      const historyWithPreviews = await Promise.all(
+        sorted.map(async (chat) => {
+          try {
+            const conv = await getConversation(chat.id);
+            const aiMsg = conv.messages?.find(
+              (m) => m.sender === "ai" || m.sender === "assistant"
+            );
+            const userMsg = conv.messages?.find((m) => m.sender === "user");
+
+            let answerPreview = "";
+            if (aiMsg?.text) {
+              const firstLine = aiMsg.text.split("\n").filter(Boolean)[0] || "";
+              answerPreview =
+                firstLine.length > 85 ? firstLine.slice(0, 85) + "..." : firstLine;
+            }
+
+            return {
+              ...chat,
+              prompt: userMsg?.text || chat.title || "Untitled Conversation",
+              answerPreview,
+            };
+          } catch {
+            return {
+              ...chat,
+              prompt: chat.title || "Untitled Conversation",
+              answerPreview: "",
+            };
+          }
+        })
+      );
+
+      setHistory(historyWithPreviews);
     } catch (err) {
       console.log("History load error:", err);
     }
@@ -52,11 +86,15 @@ function HistoryPage() {
   return (
     <DashboardLayout>
       <PageTransition>
-        <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
-          <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Conversation History</h1>
+        <div className="history-container">
+          <div style={{ marginBottom: "24px" }} className="history-header">
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>
+              <span className="desktop-title">Conversation History</span>
+              <span className="mobile-title">History</span>
+            </h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
-              Resume previous research sessions and AI document chats
+              <span className="desktop-sub">Resume previous research sessions and AI document chats</span>
+              <span className="mobile-sub">Your recent conversations</span>
             </p>
           </div>
 
@@ -95,62 +133,31 @@ function HistoryPage() {
               </p>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
+            <div className="history-grid">
               {history.map((chat) => (
                 <div
                   key={chat.id}
-                  className="glass-card"
+                  className="glass-card history-card"
                   onClick={() => openConversation(chat.id)}
-                  style={{
-                    padding: "20px",
-                    background: "var(--white)",
-                    borderRadius: "var(--radius-md)",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px"
-                  }}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-                    <div
-                      style={{
-                        width: "38px",
-                        height: "38px",
-                        borderRadius: "10px",
-                        background: "var(--light-lavender)",
-                        color: "var(--primary-purple)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0
-                      }}
-                    >
-                      <MessageSquare size={18} />
-                    </div>
-
-                    <div style={{ flex: 1, overflow: "hidden" }}>
-                      <h3
-                        style={{
-                          fontSize: "1rem",
-                          fontWeight: 700,
-                          margin: 0,
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                          whiteSpace: "nowrap"
-                        }}
-                      >
-                        {chat.title || "Untitled Conversation"}
-                      </h3>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", color: "var(--text-light)", marginTop: "4px" }}>
-                        <Clock size={12} />
-                        <span>{formatDate(chat.created_at)}</span>
-                      </div>
-                    </div>
+                  <div className="history-prompt-pill">
+                    <MessageSquare size={15} style={{ flexShrink: 0 }} />
+                    <span>{chat.prompt}</span>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", color: "var(--primary-purple)", fontSize: "0.85rem", fontWeight: 600, paddingTop: "8px", borderTop: "1px solid var(--border-color)" }}>
-                    <span>Resume Session</span>
+                  {chat.answerPreview && (
+                    <p className="history-preview-text">
+                      {chat.answerPreview}
+                    </p>
+                  )}
+
+                  <div className="history-date-row">
+                    <Clock size={12} />
+                    <span>{formatDate(chat.created_at)}</span>
+                  </div>
+
+                  <div className="history-action-link">
+                    <span>Open in Conversation</span>
                     <ArrowRight size={15} />
                   </div>
                 </div>

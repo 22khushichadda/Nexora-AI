@@ -7,6 +7,7 @@ import "../styles/header.css";
 
 function Header({ onToggleSidebar }) {
   const { user } = useAuth();
+  const firstName = user?.name ? user.name.split(" ")[0] : "User";
 
   return (
     <motion.header
@@ -28,10 +29,14 @@ function Header({ onToggleSidebar }) {
           <h1>
             Welcome back,{" "}
             <span style={{ color: "var(--primary-purple)" }}>
-              {user?.name || "Nexora User"}
+              <span className="desktop-name">{user?.name || "Nexora User"}</span>
+              <span className="mobile-name">{firstName}</span>
             </span>
           </h1>
-          <p>AI-Powered Document Intelligence Workspace</p>
+          <p className="header-subtitle">
+            <span className="desktop-subtitle">AI-Powered Document Intelligence Workspace</span>
+            <span className="mobile-subtitle">Document Intelligence Workspace</span>
+          </p>
         </div>
       </div>
 

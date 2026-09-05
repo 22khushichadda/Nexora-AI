@@ -72,10 +72,16 @@ function Documents() {
     <DashboardLayout>
       <PageTransition>
         <div className="documents-page">
-          <h1>Shared Documents</h1>
-          <p className="documents-subtitle">
-            Documents uploaded to your workspace
-          </p>
+          <div style={{ marginBottom: "24px" }} className="documents-header">
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>
+              <span className="desktop-title">Shared Documents</span>
+              <span className="mobile-title">Documents</span>
+            </h1>
+            <p className="documents-subtitle">
+              <span className="desktop-sub">Documents uploaded to your workspace</span>
+              <span className="mobile-sub">Workspace files</span>
+            </p>
+          </div>
 
           {documents.length === 0 ? (
             <div className="empty-doc">

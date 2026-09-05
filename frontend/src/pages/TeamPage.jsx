@@ -10,6 +10,7 @@ import {
   updateMemberRole,
   WORKSPACE_ID
 } from "../services/api";
+import "../styles/team.css";
 
 function TeamPage() {
   const [members, setMembers] = useState([]);
@@ -112,25 +113,21 @@ function TeamPage() {
   return (
     <DashboardLayout>
       <PageTransition>
-        <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
+        <div className="team-container">
           {/* Header */}
-          <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Team & Members</h1>
+          <div style={{ marginBottom: "24px" }} className="team-header-title">
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>
+              <span className="desktop-title">Team & Members</span>
+              <span className="mobile-title">Team</span>
+            </h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
-              Invite colleagues and manage workspace permissions
+              <span className="desktop-sub">Invite colleagues and manage workspace permissions</span>
+              <span className="mobile-sub">Manage workspace members</span>
             </p>
           </div>
 
           {/* Invite Member Card */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "24px",
-              marginBottom: "30px",
-              background: "var(--white)",
-              borderRadius: "var(--radius-md)"
-            }}
-          >
+          <div className="glass-card team-card">
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
               <div
                 style={{
@@ -141,7 +138,8 @@ function TeamPage() {
                   color: "var(--primary-purple)",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
+                  flexShrink: 0
                 }}
               >
                 <UserPlus size={20} />
@@ -154,7 +152,7 @@ function TeamPage() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px", marginBottom: "16px" }}>
+            <div className="team-form-grid">
               <div>
                 <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
                   Full Name
@@ -198,7 +196,7 @@ function TeamPage() {
             </div>
 
             <button
-              className="primary-btn"
+              className="primary-btn invite-btn"
               onClick={handleAddMember}
               disabled={loading}
             >
@@ -233,24 +231,13 @@ function TeamPage() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {pendingInvitations.map((inv) => (
-                  <div
-                    key={inv.id}
-                    className="glass-card"
-                    style={{
-                      padding: "16px 20px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      background: "var(--white)",
-                      borderRadius: "var(--radius-sm)"
-                    }}
-                  >
-                    <div>
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{inv.name}</h4>
-                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>{inv.email}</p>
+                  <div key={inv.id} className="glass-card pending-card">
+                    <div className="pending-card-left">
+                      <h4 className="member-name">{inv.name}</h4>
+                      <p className="member-email">{inv.email}</p>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div className="pending-card-right">
                       <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                         <Clock size={12} /> Pending
                       </span>
@@ -280,19 +267,8 @@ function TeamPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {members.map((mem) => (
-                  <div
-                    key={mem.id}
-                    className="glass-card"
-                    style={{
-                      padding: "16px 20px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      background: "var(--white)",
-                      borderRadius: "var(--radius-sm)"
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div key={mem.id} className="glass-card member-card">
+                    <div className="member-card-left">
                       <div
                         style={{
                           width: "40px",
@@ -304,28 +280,33 @@ function TeamPage() {
                           fontSize: "0.9rem",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center"
+                          justifyContent: "center",
+                          flexShrink: 0
                         }}
                       >
                         {mem.name ? mem.name.slice(0, 2).toUpperCase() : "NX"}
                       </div>
-                      <div>
-                        <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{mem.name}</h4>
-                        <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>{mem.email}</p>
+                      <div className="member-info">
+                        <div className="member-card-header">
+                          <h4 className="member-name">{mem.name}</h4>
+                          <button
+                            className="delete-member-btn mobile-only-delete"
+                            title="Remove Member"
+                            onClick={() => handleRemoveMember(mem.id)}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                        <p className="member-email">{mem.email}</p>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div className="member-card-right">
+                      <span className="member-role-label">Role</span>
                       <select
                         value={mem.role}
                         onChange={(e) => handleRoleChange(mem.id, e.target.value)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "var(--radius-xs)",
-                          fontSize: "0.82rem",
-                          fontWeight: 600,
-                          width: "auto"
-                        }}
+                        className="member-role-select"
                       >
                         <option value="Member">Member</option>
                         <option value="Admin">Admin</option>
@@ -333,16 +314,9 @@ function TeamPage() {
                       </select>
 
                       <button
+                        className="delete-member-btn desktop-only-delete"
                         title="Remove Member"
                         onClick={() => handleRemoveMember(mem.id)}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          color: "#EF4444",
-                          padding: "6px",
-                          borderRadius: "var(--radius-xs)",
-                          cursor: "pointer"
-                        }}
                       >
                         <Trash2 size={18} />
                       </button>

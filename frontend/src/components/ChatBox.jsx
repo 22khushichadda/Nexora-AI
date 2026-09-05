@@ -4,8 +4,7 @@ import Message from "./Message";
 import {
   uploadDocument,
   askAI,
-  getDocumentStatus,
-  getDocuments
+  getDocumentStatus
 } from "../services/api";
 import "../styles/chat.css";
 
@@ -45,26 +44,17 @@ function ChatBox({ conversation, onSelectPrompt }) {
         if (response.status === "ready") {
           setProcessing(false);
           setDocumentReady(true);
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: response.message_id,
-              sender: "ai",
-              text: response.answer,
-            },
-          ]);
           clearInterval(interval);
         }
       } catch (err) {
-        console.log("Status error:", err);
+        console.log("Status polling error:", err);
       }
     }, 2000);
 
     return () => clearInterval(interval);
   }, [processing]);
 
-  // Upload PDF
+  // Upload PDF - ONLY sets uploadedFile and processing state; NO chat message bubble created!
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -75,40 +65,26 @@ function ChatBox({ conversation, onSelectPrompt }) {
       setUploadedFile(file.name);
       setProcessing(true);
       setDocumentReady(false);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: "Document uploaded successfully.\n\nAnalyzing the document...",
-        },
-      ]);
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: err.response?.data?.detail || err.message || "Upload Failed.",
-        },
-      ]);
+      console.log("Upload error:", err);
+      alert(err.response?.data?.detail || err.message || "Upload Failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Ask AI
+  // Ask AI - ONLY called when user submits a prompt
   const handleAsk = async (customPrompt) => {
     const promptToSend = typeof customPrompt === "string" ? customPrompt : question;
     if (!promptToSend.trim()) return;
 
-    if (!documentReady) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: "Please upload a document first or wait for the current document to finish processing.",
-        },
-      ]);
+    if (!documentReady && processing) {
+      alert("Document is still being analyzed. Please wait a few seconds.");
+      return;
+    }
+
+    if (!documentReady && !uploadedFile) {
+      alert("Please upload a PDF document first.");
       return;
     }
 
@@ -135,15 +111,17 @@ function ChatBox({ conversation, onSelectPrompt }) {
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now(),
+          id: Date.now() + 1,
           sender: "ai",
           text: response.answer,
         },
       ]);
     } catch (err) {
+      console.log("Ask AI error:", err);
       setMessages((prev) => [
         ...prev,
         {
+          id: Date.now() + 1,
           sender: "ai",
           text: err.response?.data?.detail || err.message || "Something went wrong.",
         },

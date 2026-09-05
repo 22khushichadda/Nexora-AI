@@ -1,0 +1,243 @@
+/* ======================================================
+   TEAM PAGE RESPONSIVE STYLES
+   ====================================================== */
+
+.team-container {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.team-header-title h1 .desktop-title {
+  display: inline;
+}
+
+.team-header-title h1 .mobile-title {
+  display: none;
+}
+
+.team-header-title p .desktop-sub {
+  display: inline;
+}
+
+.team-header-title p .mobile-sub {
+  display: none;
+}
+
+.team-card {
+  padding: 24px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  margin-bottom: 30px;
+}
+
+.team-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.invite-btn {
+  width: auto;
+}
+
+/* Member & Invitation Card Layouts */
+.member-card {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  gap: 12px;
+}
+
+.member-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.member-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.member-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-email {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.member-card-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.member-role-label {
+  display: none;
+}
+
+.member-role-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  font-weight: 600;
+  width: auto;
+}
+
+.delete-member-btn {
+  background: transparent;
+  border: none;
+  color: #EF4444;
+  padding: 6px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.delete-member-btn:hover {
+  background: #FEE2E2;
+}
+
+.mobile-only-delete {
+  display: none;
+}
+
+.desktop-only-delete {
+  display: inline-flex;
+}
+
+/* Pending Invitations Card */
+.pending-card {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  gap: 12px;
+}
+
+.pending-card-left {
+  min-width: 0;
+  flex: 1;
+}
+
+.pending-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Mobile Media Queries */
+@media (max-width: 768px) {
+  .team-container {
+    padding: 16px;
+  }
+
+  .team-header-title h1 .desktop-title {
+    display: none;
+  }
+
+  .team-header-title h1 .mobile-title {
+    display: inline;
+  }
+
+  .team-header-title p .desktop-sub {
+    display: none;
+  }
+
+  .team-header-title p .mobile-sub {
+    display: inline;
+  }
+
+  .team-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .invite-btn {
+    width: 100%;
+  }
+
+  /* Stacked Member Card for Mobile */
+  .member-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .mobile-only-delete {
+    display: inline-flex;
+  }
+
+  .desktop-only-delete {
+    display: none;
+  }
+
+  .member-card-right {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 6px;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .member-role-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .member-role-select {
+    width: 100% !important;
+  }
+
+  /* Stacked Pending Invitations Card */
+  .pending-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .pending-card-right {
+    width: 100%;
+    justify-content: flex-start;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+  }
+}

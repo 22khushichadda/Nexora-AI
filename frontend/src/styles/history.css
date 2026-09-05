@@ -1,0 +1,143 @@
+/* ======================================================
+   HISTORY PAGE STYLES
+   ====================================================== */
+
+.history-container {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.history-header h1 .desktop-title {
+  display: inline;
+}
+
+.history-header h1 .mobile-title {
+  display: none;
+}
+
+.history-header p .desktop-sub {
+  display: inline;
+}
+
+.history-header p .mobile-sub {
+  display: none;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.history-card {
+  padding: 18px 20px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.history-card:hover {
+  border-color: var(--pastel-purple);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.history-prompt-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--light-lavender);
+  color: var(--primary-purple);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid rgba(196, 181, 253, 0.6);
+  max-width: 100%;
+}
+
+.history-prompt-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-preview-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.history-date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+.history-action-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary-purple);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .history-container {
+    padding: 16px;
+  }
+
+  .history-header h1 .desktop-title {
+    display: none;
+  }
+
+  .history-header h1 .mobile-title {
+    display: inline;
+  }
+
+  .history-header p .desktop-sub {
+    display: none;
+  }
+
+  .history-header p .mobile-sub {
+    display: inline;
+  }
+
+  .history-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .history-card {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .history-prompt-pill {
+    padding: 8px 12px;
+    font-size: 0.84rem;
+  }
+
+  .history-prompt-pill span {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}

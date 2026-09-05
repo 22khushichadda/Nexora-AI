@@ -4,6 +4,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
 import { Bookmark, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { getBookmarks, getConversation } from "../services/api";
+import "../styles/bookmarks.css";
 
 function BookmarksPage() {
   const navigate = useNavigate();
@@ -49,14 +50,24 @@ function BookmarksPage() {
     });
   };
 
+  const getOneLinePreview = (text) => {
+    if (!text) return "";
+    const firstLine = text.split("\n").filter(Boolean)[0] || "";
+    return firstLine.length > 85 ? `${firstLine.slice(0, 85)}...` : firstLine;
+  };
+
   return (
     <DashboardLayout>
       <PageTransition>
-        <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
-          <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Bookmarked Insights</h1>
+        <div className="bookmarks-container">
+          <div style={{ marginBottom: "24px" }} className="bookmarks-header">
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>
+              <span className="desktop-title">Bookmarked Insights</span>
+              <span className="mobile-title">Bookmarks</span>
+            </h1>
             <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
-              Quick access to your saved research responses
+              <span className="desktop-sub">Quick access to your saved research responses</span>
+              <span className="mobile-sub">Saved answers</span>
             </p>
           </div>
 
@@ -95,40 +106,28 @@ function BookmarksPage() {
               </p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div className="bookmarks-list">
               {bookmarks.map((bm) => (
                 <div
                   key={bm.bookmark_id}
-                  className="glass-card"
+                  className="glass-card bookmark-card"
                   onClick={() => openBookmark(bm.conversation_id)}
-                  style={{
-                    padding: "20px 24px",
-                    background: "var(--white)",
-                    borderRadius: "var(--radius-md)",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px"
-                  }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span className="badge badge-purple">
-                        <Sparkles size={12} /> {bm.conversation_title || "Conversation"}
-                      </span>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--text-light)" }}>
-                      <Clock size={13} />
-                      <span>{formatDate(bm.created_at)}</span>
-                    </div>
+                  <div className="bookmark-title-pill">
+                    <Sparkles size={13} style={{ flexShrink: 0 }} />
+                    <span>{bm.conversation_title || "Saved Response"}</span>
                   </div>
 
-                  <p style={{ color: "var(--text-primary)", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
-                    {bm.answer.length > 220 ? `${bm.answer.substring(0, 220)}...` : bm.answer}
+                  <p className="bookmark-preview-text">
+                    {getOneLinePreview(bm.answer)}
                   </p>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--primary-purple)", fontSize: "0.85rem", fontWeight: 600, marginTop: "4px" }}>
+                  <div className="bookmark-date-row">
+                    <Clock size={12} />
+                    <span>{formatDate(bm.created_at)}</span>
+                  </div>
+
+                  <div className="bookmark-action-link">
                     <span>Open in Conversation</span>
                     <ArrowRight size={15} />
                   </div>
