@@ -1,67 +1,39 @@
-.animated-bg{
-
-    position:fixed;
-
-    inset:0;
-
-    overflow:hidden;
-
-    z-index:-2;
-
-    background:#05060b;
-
+.animated-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: -2;
+  background: #F8FAFC;
 }
 
-.blob{
-
-    position:absolute;
-
-    border-radius:50%;
-
-    filter:blur(120px);
-
-    opacity:.25;
-
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.35;
+  pointer-events: none;
 }
 
-.blob1{
-
-    width:450px;
-
-    height:450px;
-
-    background:#6d4aff;
-
-    top:-120px;
-
-    left:-120px;
-
+.blob1 {
+  width: 450px;
+  height: 450px;
+  background: #C4B5FD;
+  top: -120px;
+  left: -120px;
 }
 
-.blob2{
-
-    width:380px;
-
-    height:380px;
-
-    background:#00d4ff;
-
-    right:-100px;
-
-    bottom:-80px;
-
+.blob2 {
+  width: 380px;
+  height: 380px;
+  background: #93C5FD;
+  right: -100px;
+  bottom: -80px;
 }
 
-.blob3{
-
-    width:300px;
-
-    height:300px;
-
-    background:#9d4dff;
-
-    top:40%;
-
-    left:40%;
-
+.blob3 {
+  width: 300px;
+  height: 300px;
+  background: #EDE9FE;
+  top: 40%;
+  left: 40%;
 }
