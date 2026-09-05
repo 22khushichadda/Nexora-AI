@@ -1,367 +1,182 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-
 import DashboardLayout from "../layouts/DashboardLayout";
+import PageTransition from "../components/PageTransition";
+import NexoraLogo from "../components/NexoraLogo";
 import API from "../services/api";
 import { useAuth } from "../components/context/AuthContext";
-
+import { Users, Mail, Shield, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
 
 function InvitePage() {
+  const { token } = useParams();
+  const { user, isAuthenticated } = useAuth();
 
-    const { token } = useParams();
-    const { user, isAuthenticated } = useAuth();
+  const [invitation, setInvitation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [accepting, setAccepting] = useState(false);
+  const [error, setError] = useState("");
 
-    const [invitation, setInvitation] = useState(null);
-
-    const [loading, setLoading] = useState(true);
-
-    const [accepting, setAccepting] = useState(false);
-
-    const [error, setError] = useState("");
-
-
-    // ======================================================
-    // Load Invitation
-    // ======================================================
-
-    useEffect(() => {
-
-        const loadInvitation = async () => {
-
-            try {
-
-                const response = await API.get(
-                    `/workspace/invitation/${token}`
-                );
-
-                setInvitation(response.data);
-
-            }
-
-            catch (err) {
-
-                console.log(
-                    "Invitation error:",
-                    err
-                );
-
-                setError(
-                    err.response?.data?.detail ||
-                    "This invitation is invalid or has expired."
-                );
-
-            }
-
-            finally {
-
-                setLoading(false);
-
-            }
-
-        };
-
-        loadInvitation();
-
-    }, [token]);
-
-
-    // ======================================================
-    // Accept Invitation
-    // ======================================================
-
-    const handleAccept = async () => {
-
-        try {
-
-            setAccepting(true);
-
-            setError("");
-
-            const response = await API.post(
-                `/workspace/invitation/${token}/accept`
-            );
-
-            alert(
-                response.data.message ||
-                "Invitation accepted successfully."
-            );
-
-            window.location.href = "/team";
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Accept invitation error:",
-                err
-            );
-
-            setError(
-                err.response?.data?.detail ||
-                "Unable to accept invitation."
-            );
-
-        }
-
-        finally {
-
-            setAccepting(false);
-
-        }
-
+  useEffect(() => {
+    const loadInvitation = async () => {
+      try {
+        const response = await API.get(`/workspace/invitation/${token}`);
+        setInvitation(response.data);
+      } catch (err) {
+        console.log("Invitation error:", err);
+        setError(
+          err.response?.data?.detail || "This invitation is invalid or has expired."
+        );
+      } finally {
+        setLoading(false);
+      }
     };
 
+    loadInvitation();
+  }, [token]);
 
-    // ======================================================
-    // Loading
-    // ======================================================
+  const handleAccept = async () => {
+    try {
+      setAccepting(true);
+      setError("");
 
-    if (loading) {
-
-        return (
-
-            <DashboardLayout>
-
-                <div
-                    style={{
-                        padding: "40px",
-                        color: "white"
-                    }}
-                >
-
-                    Loading invitation...
-
-                </div>
-
-            </DashboardLayout>
-
-        );
-
+      const response = await API.post(`/workspace/invitation/${token}/accept`);
+      alert(response.data.message || "Invitation accepted successfully.");
+      window.location.href = "/team";
+    } catch (err) {
+      console.log("Accept invitation error:", err);
+      setError(
+        err.response?.data?.detail || "Unable to accept invitation."
+      );
+    } finally {
+      setAccepting(false);
     }
+  };
 
-
-    // ======================================================
-    // Error
-    // ======================================================
-
-    if (error) {
-
-        return (
-
-            <DashboardLayout>
-
-                <div
-                    style={{
-                        background: "#171b27",
-                        padding: "40px",
-                        borderRadius: "16px",
-                        maxWidth: "600px",
-                        margin: "40px auto",
-                        textAlign: "center",
-                        color: "white"
-                    }}
-                >
-
-                    <h1>
-                        ❌ Invitation Error
-                    </h1>
-
-                    <p
-                        style={{
-                            marginTop: "15px",
-                            color: "#aeb7d0"
-                        }}
-                    >
-
-                        {error}
-
-                    </p>
-
-                </div>
-
-            </DashboardLayout>
-
-        );
-
-    }
-
-
-    // ======================================================
-    // Invitation Page
-    // ======================================================
-
+  if (loading) {
     return (
+      <DashboardLayout>
+        <div style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-muted)" }}>
+          Loading workspace invitation...
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-        <DashboardLayout>
-
+  if (error) {
+    return (
+      <DashboardLayout>
+        <PageTransition>
+          <div
+            className="glass-card"
+            style={{
+              padding: "40px 30px",
+              maxWidth: "520px",
+              margin: "60px auto",
+              textAlign: "center",
+              background: "var(--white)",
+              borderRadius: "var(--radius-lg)"
+            }}
+          >
             <div
-                style={{
-                    maxWidth: "650px",
-                    margin: "50px auto",
-                    background: "#171b27",
-                    padding: "40px",
-                    borderRadius: "18px",
-                    textAlign: "center",
-                    color: "white"
-                }}
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "14px",
+                background: "#FEF2F2",
+                color: "#DC2626",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "16px"
+              }}
             >
+              <AlertCircle size={24} />
+            </div>
+            <h2 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 10px 0" }}>Invitation Link Error</h2>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.92rem", margin: 0 }}>{error}</p>
+          </div>
+        </PageTransition>
+      </DashboardLayout>
+    );
+  }
 
-                <div
-                    style={{
-                        fontSize: "55px",
-                        marginBottom: "15px"
-                    }}
-                >
+  return (
+    <DashboardLayout>
+      <PageTransition>
+        <div
+          className="glass-card"
+          style={{
+            maxWidth: "540px",
+            margin: "40px auto",
+            padding: "36px",
+            borderRadius: "var(--radius-lg)",
+            textAlign: "center",
+            background: "var(--white)"
+          }}
+        >
+          <div style={{ display: "inline-flex", justifyContent: "center", marginBottom: "16px" }}>
+            <NexoraLogo size="md" />
+          </div>
 
-                    👥
+          <h1 style={{ fontSize: "1.45rem", fontWeight: 800, margin: "0 0 6px 0" }}>
+            You're Invited to Join Workspace!
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "0 0 24px 0" }}>
+            Hello <strong>{invitation.name}</strong>, you've been granted access to collaborate in Nexora AI.
+          </p>
 
-                </div>
-
-
-                <h1>
-                    You're Invited!
-                </h1>
-
-
-                <p
-                    style={{
-                        color: "#aeb7d0",
-                        marginTop: "15px",
-                        lineHeight: "1.7"
-                    }}
-                >
-
-                    Hello{" "}
-
-                    <strong>
-                        {invitation.name}
-                    </strong>
-
-                    !
-
-                    <br />
-
-                    You have been invited to join a
-                    Nexora AI workspace.
-
-                </p>
-
-
-                <div
-                    style={{
-                        marginTop: "25px",
-                        padding: "20px",
-                        background: "#10131d",
-                        borderRadius: "12px",
-                        textAlign: "left"
-                    }}
-                >
-
-                    <p>
-
-                        <strong>
-                            Email:
-                        </strong>
-
-                        <br />
-
-                        {invitation.email}
-
-                    </p>
-
-
-                    <p
-                        style={{
-                            marginTop: "15px"
-                        }}
-                    >
-
-                        <strong>
-                            Role:
-                        </strong>
-
-                        <br />
-
-                        {invitation.role}
-
-                    </p>
-
-
-                    <p
-                        style={{
-                            marginTop: "15px"
-                        }}
-                    >
-
-                        <strong>
-                            Status:
-                        </strong>
-
-                        <br />
-
-                        ⏳ {invitation.status}
-
-                    </p>
-
-                </div>
-
-
-                <button
-
-                    onClick={handleAccept}
-
-                    disabled={accepting}
-
-                    style={{
-                        width: "100%",
-                        marginTop: "25px",
-                        padding: "14px",
-                        border: "none",
-                        borderRadius: "10px",
-                        background:
-                            accepting
-                                ? "#44475a"
-                                : "#6366f1",
-                        color: "white",
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        cursor:
-                            accepting
-                                ? "not-allowed"
-                                : "pointer"
-                    }}
-
-                >
-
-                    {
-                        accepting
-                            ? "Accepting..."
-                            : "Accept Invitation"
-                    }
-
-                </button>
-
-                {!isAuthenticated && (
-                    <div style={{ marginTop: "20px", fontSize: "14px", color: "#aeb7d0" }}>
-                        New to Nexora AI?{" "}
-                        <Link to="/signup" style={{ color: "#818cf8", textDecoration: "none", fontWeight: "600" }}>
-                            Sign Up
-                        </Link>{" "}
-                        or{" "}
-                        <Link to="/login" style={{ color: "#818cf8", textDecoration: "none", fontWeight: "600" }}>
-                            Login
-                        </Link>
-                    </div>
-                )}
-
+          <div
+            style={{
+              background: "var(--off-white)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+              padding: "18px",
+              textAlign: "left",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              marginBottom: "24px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyBetween: "space-between", gap: "10px" }}>
+              <Mail size={16} color="var(--primary-purple)" />
+              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Invited Email:</span>
+              <strong style={{ fontSize: "0.88rem", marginLeft: "auto", color: "var(--text-primary)" }}>{invitation.email}</strong>
             </div>
 
-        </DashboardLayout>
+            <div style={{ display: "flex", alignItems: "center", justifyBetween: "space-between", gap: "10px" }}>
+              <Shield size={16} color="var(--primary-purple)" />
+              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Role:</span>
+              <span className="badge badge-purple" style={{ marginLeft: "auto" }}>{invitation.role}</span>
+            </div>
+          </div>
 
-    );
+          <button
+            className="primary-btn"
+            onClick={handleAccept}
+            disabled={accepting}
+            style={{ width: "100%", padding: "13px" }}
+          >
+            <span>{accepting ? "Accepting..." : "Accept Workspace Invitation"}</span>
+            <ArrowRight size={18} />
+          </button>
 
+          {!isAuthenticated && (
+            <div style={{ marginTop: "20px", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              New to Nexora AI?{" "}
+              <Link to="/signup" style={{ color: "var(--primary-purple)", textDecoration: "none", fontWeight: "700" }}>
+                Sign Up
+              </Link>{" "}
+              or{" "}
+              <Link to="/login" style={{ color: "var(--primary-purple)", textDecoration: "none", fontWeight: "700" }}>
+                Log In
+              </Link>
+            </div>
+          )}
+        </div>
+      </PageTransition>
+    </DashboardLayout>
+  );
 }
-
 
 export default InvitePage;

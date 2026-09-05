@@ -1,197 +1,151 @@
-.documents-page{
-
-    padding:25px 10px;
-
-}
-
-.documents-page h1{
-
-    font-size:42px;
-
-    margin-bottom:8px;
-
-}
-
-.documents-subtitle{
-
-    color:#9aa4b5;
-
-    margin-bottom:35px;
-
-}
-
-.document-card{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:22px;
-
-    margin-bottom:20px;
-
-    padding:22px;
-
-    border-radius:24px;
-
-    background:rgba(255,255,255,.05);
-
-    backdrop-filter:blur(20px);
-
-    border:1px solid rgba(255,255,255,.08);
-
-    transition:.35s;
-
-}
-
-.document-card:hover{
-
-    transform:translateY(-5px);
-
-    border:1px solid #7b3ff2;
-
-    box-shadow:
-
-    0 0 30px rgba(123,63,242,.25);
-
-}
-
-.document-icon{
-
-    width:70px;
-
-    height:70px;
-
-    border-radius:20px;
-
-    background:linear-gradient(
-
-        135deg,
-
-        #7b3ff2,
-
-        #00d4ff
-
-    );
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    color:white;
-
-    flex-shrink:0;
-
-}
-
-.document-info{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:6px;
-
-}
-
-.document-info h2{
-
-    font-size:21px;
-
-    color:white;
-
-}
-
-.document-info p{
-
-    color:#b8bfd4;
-
-}
-
-.document-info span{
-
-    color:white;
-
-    font-weight:600;
-
-}
-
-.document-info small{
-
-    color:#8e97ad;
-
-    font-size:14px;
-
-}
-
-.empty-doc{
-
-    margin-top:80px;
-
-    text-align:center;
-
-    color:#8d96ad;
-
-    font-size:22px;
-
-}
-
 /* ======================================================
-   Document Meta
-====================================================== */
+   DOCUMENTS PAGE STYLES (Pastel + White Modern Workspace)
+   ====================================================== */
+
+.documents-page {
+  padding: 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.documents-page h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+
+}
+
+.documents-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-bottom: 24px;
+}
+
+.documents-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.document-card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+}
+
+.document-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--pastel-purple);
+  box-shadow: var(--shadow-md);
+}
+
+.document-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--light-lavender);
+  color: var(--primary-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.document-info {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.document-info h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.document-uploader {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.document-date {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .document-meta {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin-top: 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
-
-
-/* ======================================================
-   Document Badge
-====================================================== */
 
 .document-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
 }
-
-
-/* ======================================================
-   Document Status
-====================================================== */
 
 .document-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-
-
-/* ======================================================
-   Ready Status
-====================================================== */
 
 .document-status.ready {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  background: #DCFCE7;
+  color: #16A34A;
 }
 
-
-/* ======================================================
-   Processing Status
-====================================================== */
-
 .document-status.processing {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+/* Empty State */
+.empty-doc {
+  background: var(--white);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.empty-doc h2 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.empty-doc p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }

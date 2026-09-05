@@ -1,55 +1,86 @@
-.header{
+/* ======================================================
+   HEADER STYLES (Pastel + White Modern TopBar)
+   ====================================================== */
 
-    display:flex;
-
-    justify-content:flex-start;
-
-    align-items:center;
-
-    margin-bottom:30px;
-
+.header {
+  padding: 16px 28px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
-.header-left{
-
-    display:flex;
-
-    flex-direction:column;
-
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.header h1{
-
-    color:white;
-
-    font-size:44px;
-
-    font-weight:700;
-
-    margin:0;
-
-    line-height:1.15;
-
+.mobile-menu-btn {
+  display: none;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
-.header h1 span{
-
-    background:linear-gradient(90deg,#8b3dff,#26c7ff);
-
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-
+.mobile-menu-btn:hover {
+  background: var(--light-lavender);
+  border-color: var(--pastel-purple);
+  color: var(--primary-purple);
 }
 
-.header p{
+.header-title h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
 
-    margin-top:8px;
+.header-title p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
 
-    color:#8f95a9;
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    font-size:18px;
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  background: var(--light-lavender);
+  border: 1px solid rgba(196, 181, 253, 0.6);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-purple);
+}
 
-    font-weight:400;
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
 
+@media (max-width: 900px) {
+  .header {
+    padding: 12px 18px;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+  }
 }

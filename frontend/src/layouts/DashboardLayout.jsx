@@ -1,52 +1,31 @@
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import AnimatedBackground from "../components/AnimatedBackground";
-
 
 function DashboardLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    return (
+  return (
+    <div className="app">
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-        <div className="app">
-
-            <AnimatedBackground />
-
-            <Sidebar />
-
-            <motion.div
-
-                className="dashboard"
-
-                initial={{
-                    opacity:0,
-                    x:40
-                }}
-
-                animate={{
-                    opacity:1,
-                    x:0
-                }}
-
-                transition={{
-                    duration:0.8,
-                    ease:"easeOut"
-                }}
-
-                
-
-            >
-
-                <Header />
-
-                {children}
-
-            </motion.div>
-
-        </div>
-
-    );
-
+      <motion.div
+        className="dashboard"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <Header onToggleSidebar={() => setSidebarOpen(true)} />
+        <main style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          {children}
+        </main>
+      </motion.div>
+    </div>
+  );
 }
 
 export default DashboardLayout;

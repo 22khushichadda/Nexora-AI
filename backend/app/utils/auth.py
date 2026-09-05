@@ -1,6 +1,17 @@
 import jwt
 from datetime import datetime, timedelta
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+
+from app.database.database import get_db
+from app.database.models import User
+from app.database.config import (
+    JWT_SECRET_KEY,
+    JWT_ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
 
 security = HTTPBearer(auto_error=False)
 

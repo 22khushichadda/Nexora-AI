@@ -1,878 +1,353 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
-
+import PageTransition from "../components/PageTransition";
+import { Users, UserPlus, Shield, Trash2, Mail, Clock, CheckCircle } from "lucide-react";
 import {
-    getMembers,
-    getInvitations,
-    addMember,
-    removeMember,
-    updateMemberRole,
-    WORKSPACE_ID
+  getMembers,
+  getInvitations,
+  addMember,
+  removeMember,
+  updateMemberRole,
+  WORKSPACE_ID
 } from "../services/api";
 
-
 function TeamPage() {
-
-    const [members, setMembers] = useState([]);
-
-    const [name, setName] = useState("");
-
-    const [email, setEmail] = useState("");
-
-    const [role, setRole] = useState("Member");
-
-    const [loading, setLoading] = useState(false);
-
-    const [inviteMessage, setInviteMessage] = useState("");
-
-    const [pendingInvitations, setPendingInvitations] = useState([]);
-
-
-    // ======================================================
-    // Load Members + Invitations
-    // ======================================================
-
-    useEffect(() => {
-
-        loadMembers();
-
-        loadInvitations();
-
-    }, []);
-
-
-    // ======================================================
-    // Load Current Members
-    // ======================================================
-
-    const loadMembers = async () => {
-
-        try {
-
-            const data = await getMembers(
-                WORKSPACE_ID
-            );
-
-            setMembers(data);
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Unable to load members:",
-                err
-            );
-
-        }
-
-    };
-
-
-    // ======================================================
-    // Load Pending Invitations
-    // ======================================================
-
-    const loadInvitations = async () => {
-
-        try {
-
-            const data = await getInvitations(
-                WORKSPACE_ID
-            );
-
-            setPendingInvitations(data);
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Unable to load invitations:",
-                err
-            );
-
-        }
-
-    };
-
-
-    // ======================================================
-    // Invite Member
-    // ======================================================
-
-    const handleAddMember = async () => {
-
-        if (!name.trim() || !email.trim()) {
-
-            setInviteMessage(
-                "❌ Please fill in both name and email."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            setLoading(true);
-
-            setInviteMessage("");
-
-
-            // ------------------------------------------
-            // Create Invitation
-            // ------------------------------------------
-
-            const response = await addMember({
-
-                workspace_id: WORKSPACE_ID,
-
-                name: name.trim(),
-
-                email: email.trim(),
-
-                role: role
-
-            });
-
-
-            // ------------------------------------------
-            // Clear Form
-            // ------------------------------------------
-
-            setName("");
-
-            setEmail("");
-
-            setRole("Member");
-
-
-            // ------------------------------------------
-            // Reload Members
-            // ------------------------------------------
-
-            await loadMembers();
-
-
-            // ------------------------------------------
-            // Reload Pending Invitations
-            // ------------------------------------------
-
-            await loadInvitations();
-
-
-            // ------------------------------------------
-            // Success Message
-            // ------------------------------------------
-
-            setInviteMessage(
-
-                `✅ ${
-                    response.message ||
-                    "Invitation created successfully."
-                }`
-
-            );
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Invite error:",
-                err
-            );
-
-
-            setInviteMessage(
-
-                err.response?.data?.detail ||
-
-                "❌ Unable to create invitation."
-
-            );
-
-        }
-
-        finally {
-
-            setLoading(false);
-
-        }
-
-    };
-
-
-    // ======================================================
-    // Remove Member
-    // ======================================================
-
-    const handleRemoveMember = async (
-        memberId
-    ) => {
-
-        const confirmDelete = window.confirm(
-
-            "Are you sure you want to remove this member?"
-
-        );
-
-
-        if (!confirmDelete) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await removeMember(
-                memberId
-            );
-
-            await loadMembers();
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Remove member error:",
-                err
-            );
-
-            alert(
-
-                err.response?.data?.detail ||
-
-                "Unable to remove member."
-
-            );
-
-        }
-
-    };
-
-
-    // ======================================================
-    // Change Member Role
-    // ======================================================
-
-    const handleRoleChange = async (
-
-        memberId,
-
-        newRole
-
-    ) => {
-
-        try {
-
-            await updateMemberRole(
-
-                memberId,
-
-                newRole
-
-            );
-
-            await loadMembers();
-
-        }
-
-        catch (err) {
-
-            console.log(
-                "Role update error:",
-                err
-            );
-
-            alert(
-
-                err.response?.data?.detail ||
-
-                "Unable to update member role."
-
-            );
-
-        }
-
-    };
-
-
-    // ======================================================
-    // Render
-    // ======================================================
-
-    return (
-
-        <DashboardLayout>
-
-            {/* ==================================================
-                Header
-            ================================================== */}
-
-            <h1>
-                👥 Team Members
-            </h1>
-
-            <p>
-                Manage your workspace members
+  const [members, setMembers] = useState([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Member");
+  const [loading, setLoading] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [pendingInvitations, setPendingInvitations] = useState([]);
+
+  useEffect(() => {
+    loadMembers();
+    loadInvitations();
+  }, []);
+
+  const loadMembers = async () => {
+    try {
+      const data = await getMembers(WORKSPACE_ID);
+      setMembers(data);
+    } catch (err) {
+      console.log("Unable to load members:", err);
+    }
+  };
+
+  const loadInvitations = async () => {
+    try {
+      const data = await getInvitations(WORKSPACE_ID);
+      setPendingInvitations(data);
+    } catch (err) {
+      console.log("Unable to load invitations:", err);
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!name.trim() || !email.trim()) {
+      setInviteMessage("❌ Please fill in both name and email.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setInviteMessage("");
+
+      const response = await addMember({
+        workspace_id: WORKSPACE_ID,
+        name: name.trim(),
+        email: email.trim(),
+        role: role
+      });
+
+      setName("");
+      setEmail("");
+      setRole("Member");
+
+      await loadMembers();
+      await loadInvitations();
+
+      setInviteMessage(`✅ ${response.message || "Invitation created successfully."}`);
+    } catch (err) {
+      console.log("Invite error:", err);
+      setInviteMessage(err.response?.data?.detail || "❌ Unable to create invitation.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    const confirmDelete = window.confirm("Are you sure you want to remove this member?");
+    if (!confirmDelete) return;
+
+    try {
+      await removeMember(memberId);
+      await loadMembers();
+    } catch (err) {
+      console.log("Remove member error:", err);
+      alert(err.response?.data?.detail || "Unable to remove member.");
+    }
+  };
+
+  const handleRoleChange = async (memberId, newRole) => {
+    try {
+      await updateMemberRole(memberId, newRole);
+      await loadMembers();
+    } catch (err) {
+      console.log("Role update error:", err);
+      alert(err.response?.data?.detail || "Unable to update member role.");
+    }
+  };
+
+  const getRoleBadgeClass = (r) => {
+    if (r === "Owner") return "badge-purple";
+    if (r === "Admin") return "badge-blue";
+    return "badge-amber";
+  };
+
+  return (
+    <DashboardLayout>
+      <PageTransition>
+        <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
+          {/* Header */}
+          <div style={{ marginBottom: "24px" }}>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>👥 Team & Members</h1>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.92rem" }}>
+              Invite colleagues and manage workspace permissions
             </p>
+          </div>
 
-            <br />
-
-
-            {/* ==================================================
-                Invite Member
-            ================================================== */}
-
-            <div
+          {/* Invite Member Card */}
+          <div
+            className="glass-card"
+            style={{
+              padding: "24px",
+              marginBottom: "30px",
+              background: "var(--white)",
+              borderRadius: "var(--radius-md)"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
+              <div
                 style={{
-                    background: "#171b27",
-                    padding: "24px",
-                    borderRadius: "14px",
-                    marginBottom: "30px"
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "10px",
+                  background: "var(--light-lavender)",
+                  color: "var(--primary-purple)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
-            >
-
-                <h3>
-                    Invite Member
-                </h3>
-
-                <br />
-
-
-                {/* Full Name */}
-
-                <input
-
-                    type="text"
-
-                    placeholder="Full Name"
-
-                    value={name}
-
-                    onChange={(e) =>
-                        setName(e.target.value)
-                    }
-
-                    disabled={loading}
-
-                    style={{
-                        width: "100%",
-                        padding: "12px",
-                        marginBottom: "15px",
-                        borderRadius: "10px",
-                        border:
-                            "1px solid #2c3247",
-                        background: "#10131d",
-                        color: "white",
-                        boxSizing: "border-box"
-                    }}
-
-                />
-
-
-                {/* Email */}
-
-                <input
-
-                    type="email"
-
-                    placeholder="Email Address"
-
-                    value={email}
-
-                    onChange={(e) =>
-                        setEmail(e.target.value)
-                    }
-
-                    disabled={loading}
-
-                    style={{
-                        width: "100%",
-                        padding: "12px",
-                        marginBottom: "15px",
-                        borderRadius: "10px",
-                        border:
-                            "1px solid #2c3247",
-                        background: "#10131d",
-                        color: "white",
-                        boxSizing: "border-box"
-                    }}
-
-                />
-
-
-                {/* Role */}
-
-                <select
-
-                    value={role}
-
-                    onChange={(e) =>
-                        setRole(e.target.value)
-                    }
-
-                    disabled={loading}
-
-                    style={{
-                        width: "100%",
-                        padding: "12px",
-                        marginBottom: "20px",
-                        borderRadius: "10px",
-                        border:
-                            "1px solid #2c3247",
-                        background: "#10131d",
-                        color: "white",
-                        boxSizing: "border-box"
-                    }}
-
-                >
-
-                    <option value="Member">
-                        Member
-                    </option>
-
-                    <option value="Admin">
-                        Admin
-                    </option>
-
-                    <option value="Owner">
-                        Owner
-                    </option>
-
-                </select>
-
-
-                {/* Invite Button */}
-
-                <button
-
-                    onClick={handleAddMember}
-
-                    disabled={loading}
-
-                    style={{
-                        padding: "12px 24px",
-                        border: "none",
-                        borderRadius: "10px",
-                        background: loading
-                            ? "#44475a"
-                            : "#6366f1",
-                        color: "white",
-                        cursor: loading
-                            ? "not-allowed"
-                            : "pointer",
-                        fontWeight: "600"
-                    }}
-
-                >
-
-                    {
-                        loading
-                            ? "Inviting..."
-                            : "Invite Member"
-                    }
-
-                </button>
-
-
-                {/* Success / Error Message */}
-
-                {
-                    inviteMessage && (
-
-                        <p
-                            style={{
-                                marginTop: "15px",
-                                marginBottom: "0",
-                                color:
-                                    inviteMessage.startsWith("✅")
-                                        ? "#4ade80"
-                                        : "#f87171",
-                                fontWeight: "500"
-                            }}
-                        >
-
-                            {inviteMessage}
-
-                        </p>
-
-                    )
-                }
-
+              >
+                <UserPlus size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>Invite Team Member</h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>
+                  Send an email invitation link to collaborate in this workspace
+                </p>
+              </div>
             </div>
 
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px", marginBottom: "16px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sarah Connor"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-            {/* ==================================================
-                Pending Invitations
-            ================================================== */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="sarah@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-            {
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                  Role & Permissions
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="Member">Member</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Owner">Owner</option>
+                </select>
+              </div>
+            </div>
 
-                pendingInvitations.length > 0 && (
+            <button
+              className="primary-btn"
+              onClick={handleAddMember}
+              disabled={loading}
+            >
+              <Mail size={18} />
+              <span>{loading ? "Sending Invitation..." : "Send Invite"}</span>
+            </button>
 
-                    <>
+            {inviteMessage && (
+              <p
+                style={{
+                  marginTop: "14px",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                  color: inviteMessage.startsWith("✅") ? "#16A34A" : "#DC2626"
+                }}
+              >
+                {inviteMessage}
+              </p>
+            )}
+          </div>
 
-                        <h2>
-                            Pending Invitations
-                        </h2>
+          {/* Pending Invitations */}
+          {pendingInvitations.length > 0 && (
+            <div style={{ marginBottom: "30px" }}>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "14px" }}>
+                ⏳ Pending Invitations ({pendingInvitations.length})
+              </h2>
 
-                        <br />
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {pendingInvitations.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="glass-card"
+                    style={{
+                      padding: "16px 20px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: "var(--white)",
+                      borderRadius: "var(--radius-sm)"
+                    }}
+                  >
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{inv.name}</h4>
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>{inv.email}</p>
+                    </div>
 
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span className="badge badge-amber">
+                        <Clock size={12} /> Pending
+                      </span>
+                      <span className={`badge ${getRoleBadgeClass(inv.role)}`}>
+                        {inv.role}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                        {
-
-                            pendingInvitations.map(
-                                (invitation) => (
-
-                                    <div
-
-                                        key={
-                                            invitation.id
-                                        }
-
-                                        style={{
-                                            background:
-                                                "#171b27",
-                                            padding:
-                                                "20px",
-                                            borderRadius:
-                                                "14px",
-                                            marginBottom:
-                                                "15px",
-                                            display:
-                                                "flex",
-                                            justifyContent:
-                                                "space-between",
-                                            alignItems:
-                                                "center",
-                                            gap:
-                                                "20px",
-                                            border:
-                                                "1px solid #2c3247"
-                                        }}
-
-                                    >
-
-                                        {/* Invitation Information */}
-
-                                        <div>
-
-                                            <h3
-                                                style={{
-                                                    margin:
-                                                        "0 0 5px 0"
-                                                }}
-                                            >
-
-                                                {
-                                                    invitation.name
-                                                }
-
-                                            </h3>
-
-                                            <p
-                                                style={{
-                                                    margin:
-                                                        "0",
-                                                    color:
-                                                        "#aeb7d0"
-                                                }}
-                                            >
-
-                                                {
-                                                    invitation.email
-                                                }
-
-                                            </p>
-
-                                        </div>
-
-
-                                        {/* Invitation Status */}
-
-                                        <div
-                                            style={{
-                                                display:
-                                                    "flex",
-                                                alignItems:
-                                                    "center",
-                                                gap:
-                                                    "15px"
-                                            }}
-                                        >
-
-                                            <span
-                                                style={{
-                                                    background:
-                                                        "#2d3653",
-                                                    color:
-                                                        "#a5b4fc",
-                                                    padding:
-                                                        "8px 14px",
-                                                    borderRadius:
-                                                        "20px",
-                                                    fontSize:
-                                                        "14px",
-                                                    fontWeight:
-                                                        "600"
-                                                }}
-                                            >
-
-                                                ⏳ Pending
-
-                                            </span>
-
-
-                                            <span
-                                                style={{
-                                                    color:
-                                                        "#ffffff"
-                                                }}
-                                            >
-
-                                                {
-                                                    invitation.role
-                                                }
-
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                )
-
-                            )
-
-                        }
-
-                        <br />
-
-                    </>
-
-                )
-
-            }
-
-
-            {/* ==================================================
-                Current Members
-            ================================================== */}
-
-            <h2>
-                Current Members
+          {/* Current Members */}
+          <div>
+            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "14px" }}>
+              Workspace Members ({members.length})
             </h2>
 
-            <br />
+            {members.length === 0 ? (
+              <div
+                className="glass-card"
+                style={{ padding: "30px", textAlign: "center", background: "var(--white)" }}
+              >
+                <p style={{ color: "var(--text-muted)" }}>No members found in this workspace.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {members.map((mem) => (
+                  <div
+                    key={mem.id}
+                    className="glass-card"
+                    style={{
+                      padding: "16px 20px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: "var(--white)",
+                      borderRadius: "var(--radius-sm)"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "10px",
+                          background: "linear-gradient(135deg, #C4B5FD 0%, #93C5FD 100%)",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          fontSize: "0.9rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center"
+                        }}
+                      >
+                        {mem.name ? mem.name.slice(0, 2).toUpperCase() : "NX"}
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{mem.name}</h4>
+                        <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>{mem.email}</p>
+                      </div>
+                    </div>
 
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <select
+                        value={mem.role}
+                        onChange={(e) => handleRoleChange(mem.id, e.target.value)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "var(--radius-xs)",
+                          fontSize: "0.82rem",
+                          fontWeight: 600,
+                          width: "auto"
+                        }}
+                      >
+                        <option value="Member">Member</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Owner">Owner</option>
+                      </select>
 
-            {
-
-                members.length === 0
-
-                    ?
-
-                    (
-
-                        <p>
-                            No members found.
-                        </p>
-
-                    )
-
-                    :
-
-                    (
-
-                        members.map(
-                            (member) => (
-
-                                <div
-
-                                    key={
-                                        member.id
-                                    }
-
-                                    style={{
-                                        background:
-                                            "#171b27",
-                                        padding:
-                                            "20px",
-                                        borderRadius:
-                                            "14px",
-                                        marginBottom:
-                                            "15px",
-                                        display:
-                                            "flex",
-                                        justifyContent:
-                                            "space-between",
-                                        alignItems:
-                                            "center",
-                                        gap:
-                                            "20px"
-                                    }}
-
-                                >
-
-                                    {/* Member Information */}
-
-                                    <div>
-
-                                        <h3
-                                            style={{
-                                                margin:
-                                                    "0 0 5px 0"
-                                            }}
-                                        >
-
-                                            {
-                                                member.name
-                                            }
-
-                                        </h3>
-
-                                        <p
-                                            style={{
-                                                margin:
-                                                    "0",
-                                                color:
-                                                    "#aeb7d0"
-                                            }}
-                                        >
-
-                                            {
-                                                member.email
-                                            }
-
-                                        </p>
-
-                                    </div>
-
-
-                                    {/* Member Controls */}
-
-                                    <div
-                                        style={{
-                                            display:
-                                                "flex",
-                                            gap:
-                                                "10px",
-                                            alignItems:
-                                                "center"
-                                        }}
-                                    >
-
-                                        {/* Role */}
-
-                                        <select
-
-                                            value={
-                                                member.role
-                                            }
-
-                                            onChange={
-
-                                                (e) =>
-
-                                                    handleRoleChange(
-
-                                                        member.id,
-
-                                                        e.target.value
-
-                                                    )
-
-                                            }
-
-                                            style={{
-                                                padding:
-                                                    "10px",
-                                                borderRadius:
-                                                    "8px",
-                                                background:
-                                                    "#2d3653",
-                                                color:
-                                                    "white",
-                                                border:
-                                                    "none",
-                                                cursor:
-                                                    "pointer"
-                                            }}
-
-                                        >
-
-                                            <option value="Owner">
-                                                Owner
-                                            </option>
-
-                                            <option value="Admin">
-                                                Admin
-                                            </option>
-
-                                            <option value="Member">
-                                                Member
-                                            </option>
-
-                                        </select>
-
-
-                                        {/* Remove */}
-
-                                        <button
-
-                                            onClick={() =>
-                                                handleRemoveMember(
-                                                    member.id
-                                                )
-                                            }
-
-                                            style={{
-                                                background:
-                                                    "#ef4444",
-                                                border:
-                                                    "none",
-                                                color:
-                                                    "white",
-                                                padding:
-                                                    "10px 16px",
-                                                borderRadius:
-                                                    "8px",
-                                                cursor:
-                                                    "pointer",
-                                                fontWeight:
-                                                    "600"
-                                            }}
-
-                                        >
-
-                                            Remove
-
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            )
-
-                        )
-
-                    )
-
-            }
-
-        </DashboardLayout>
-
-    );
-
+                      <button
+                        title="Remove Member"
+                        onClick={() => handleRemoveMember(mem.id)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#EF4444",
+                          padding: "6px",
+                          borderRadius: "var(--radius-xs)",
+                          cursor: "pointer"
+                        }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </PageTransition>
+    </DashboardLayout>
+  );
 }
-
 
 export default TeamPage;
