@@ -22,6 +22,58 @@ router = APIRouter(
 )
 
 
+from sqlalchemy import func
+
+
+def _get_user_role(user: User, db: Session, workspace_id: int = 7) -> str:
+    member = db.query(WorkspaceMember).filter(
+        (WorkspaceMember.user_id == user.id) | (func.lower(WorkspaceMember.email) == func.lower(user.email))
+    ).first()
+
+    if member:
+        if member.user_id is None:
+            member.user_id = user.id
+            db.commit()
+
+        target_ws_id = member.workspace_id or workspace_id
+
+        oldest_member = db.query(WorkspaceMember).filter(
+            WorkspaceMember.workspace_id == target_ws_id
+        ).order_by(WorkspaceMember.id.asc()).first()
+
+        if oldest_member and oldest_member.id == member.id:
+            if (member.role or "").strip().lower() != "owner":
+                member.role = "Owner"
+                db.commit()
+                db.refresh(member)
+
+        return (member.role or "Member").strip().capitalize()
+
+    first_in_ws = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == workspace_id
+    ).first()
+
+    owner_exists = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == workspace_id,
+        func.lower(WorkspaceMember.role) == "owner"
+    ).first()
+
+    new_role = "Owner" if (not first_in_ws or not owner_exists) else "Member"
+
+    new_member = WorkspaceMember(
+        workspace_id=workspace_id,
+        name=user.name,
+        email=user.email.lower(),
+        role=new_role,
+        user_id=user.id
+    )
+    db.add(new_member)
+    db.commit()
+    db.refresh(new_member)
+
+    return new_role
+
+
 # ======================================================
 # Register User
 # ======================================================
@@ -83,11 +135,18 @@ def register_user(
         db.commit()
 
     token = create_access_token(data={"sub": new_user.id})
+    role = _get_user_role(new_user, db)
 
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": new_user
+        "user": {
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email,
+            "created_at": new_user.created_at,
+            "role": role
+        }
     }
 
 
@@ -126,11 +185,18 @@ def login_user(
         )
 
     token = create_access_token(data={"sub": user.id})
+    role = _get_user_role(user, db)
 
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": user
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "created_at": user.created_at,
+            "role": role
+        }
     }
 
 
@@ -143,9 +209,17 @@ def login_user(
     response_model=UserResponse
 )
 def get_me(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    return current_user
+    role = _get_user_role(current_user, db)
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "created_at": current_user.created_at,
+        "role": role
+    }
 
 
 # ======================================================
@@ -159,3 +233,4 @@ def logout_user():
     return {
         "message": "Logged out successfully."
     }
+

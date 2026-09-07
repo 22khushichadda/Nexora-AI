@@ -100,3 +100,70 @@ def get_optional_user(
         return db.query(User).filter(User.id == user_id).first()
     except Exception:
         return None
+
+
+def get_current_workspace_member(
+    workspace_id: int,
+    current_user: User,
+    db: Session
+):
+    from app.database.models import WorkspaceMember
+    from sqlalchemy import func
+
+    member = (
+        db.query(WorkspaceMember)
+        .filter(
+            WorkspaceMember.workspace_id == workspace_id,
+            (WorkspaceMember.user_id == current_user.id) | (func.lower(WorkspaceMember.email) == func.lower(current_user.email))
+        )
+        .first()
+    )
+
+    if not member:
+        oldest_member = (
+            db.query(WorkspaceMember)
+            .filter(WorkspaceMember.workspace_id == workspace_id)
+            .order_by(WorkspaceMember.id.asc())
+            .first()
+        )
+        owner_exists = (
+            db.query(WorkspaceMember)
+            .filter(
+                WorkspaceMember.workspace_id == workspace_id,
+                func.lower(WorkspaceMember.role) == "owner"
+            )
+            .first()
+        )
+        new_role = "Owner" if (not oldest_member or not owner_exists) else "Member"
+        member = WorkspaceMember(
+            workspace_id=workspace_id,
+            name=current_user.name,
+            email=current_user.email.lower(),
+            role=new_role,
+            user_id=current_user.id
+        )
+        db.add(member)
+        db.commit()
+        db.refresh(member)
+    else:
+        if member.user_id is None:
+            member.user_id = current_user.id
+
+        oldest_member = (
+            db.query(WorkspaceMember)
+            .filter(WorkspaceMember.workspace_id == workspace_id)
+            .order_by(WorkspaceMember.id.asc())
+            .first()
+        )
+        if oldest_member and oldest_member.id == member.id:
+            if (member.role or "").strip().lower() != "owner":
+                member.role = "Owner"
+
+        db.commit()
+        db.refresh(member)
+
+    return member
+
+
+
+

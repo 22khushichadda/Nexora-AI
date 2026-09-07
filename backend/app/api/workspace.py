@@ -17,6 +17,7 @@ from app.schemas.workspace import (
 )
 
 from app.services.email_service import send_invitation_email
+from app.utils.auth import get_current_user, get_current_workspace_member
 
 import secrets
 from datetime import datetime, timedelta
@@ -154,9 +155,23 @@ def update_workspace(
 
     updated_workspace: WorkspaceCreate,
 
+    current_user: User = Depends(get_current_user),
+
     db: Session = Depends(get_db)
 
 ):
+
+    requester = get_current_workspace_member(workspace_id, current_user, db)
+
+    if requester.role != "Owner":
+
+        raise HTTPException(
+
+            status_code=403,
+
+            detail="Permission denied. Only the Owner can manage the workspace."
+
+        )
 
     workspace = (
 
@@ -202,9 +217,23 @@ def delete_workspace(
 
     workspace_id: int,
 
+    current_user: User = Depends(get_current_user),
+
     db: Session = Depends(get_db)
 
 ):
+
+    requester = get_current_workspace_member(workspace_id, current_user, db)
+
+    if requester.role != "Owner":
+
+        raise HTTPException(
+
+            status_code=403,
+
+            detail="Permission denied. Only the Owner can delete the workspace."
+
+        )
 
     workspace = (
 
