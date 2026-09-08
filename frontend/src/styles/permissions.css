@@ -1,0 +1,310 @@
+/* ======================================================
+   NEXORA AI - PERMISSIONS / RBAC STYLES
+   ====================================================== */
+
+.permissions-page {
+  padding: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.permissions-header {
+  margin-bottom: 28px;
+}
+
+.permissions-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.permissions-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Glassmorphism Container Card */
+.permissions-card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+/* Matrix Table Desktop */
+.permissions-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.permissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.permissions-table th {
+  background: var(--soft-lavender);
+  padding: 16px 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.permissions-table th.col-feature {
+  width: 40%;
+}
+
+.permissions-table th.col-role {
+  width: 20%;
+  text-align: center;
+}
+
+.permissions-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.permissions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.permissions-table tr:hover td {
+  background-color: var(--soft-blue);
+}
+
+.permission-feature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.permission-feature-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.permission-role-cell {
+  text-align: center;
+}
+
+/* Always ON Badge for Owner */
+.owner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--light-lavender);
+  color: var(--primary-purple-hover);
+  font-weight: 600;
+  font-size: 0.82rem;
+  border: 1px solid var(--pastel-purple);
+}
+
+/* Toggle Switch Component */
+.toggle-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #CBD5E1;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 26px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+input:checked + .toggle-slider {
+  background: var(--gradient-btn);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px var(--primary-purple);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  min-width: 32px;
+}
+
+.toggle-label-text.on {
+  color: var(--primary-purple-hover);
+}
+
+.toggle-label-text.off {
+  color: var(--text-muted);
+}
+
+/* Responsive Mobile Cards View (< 768px) */
+.permissions-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.permission-mobile-card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.permission-mobile-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.permission-mobile-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permission-mobile-role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.role-tag {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Access Forbidden Box */
+.rbac-forbidden-box {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 48px 24px;
+  text-align: center;
+  max-width: 500px;
+  margin: 60px auto;
+  box-shadow: var(--shadow-md);
+}
+
+.forbidden-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--soft-lavender);
+  color: var(--primary-purple-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.forbidden-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.forbidden-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--gradient-btn);
+  color: white;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--gradient-btn-hover);
+  box-shadow: var(--shadow-purple);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .permissions-page {
+    padding: 18px 14px;
+  }
+
+  .permissions-table-card {
+    display: none;
+  }
+
+  .permissions-mobile-list {
+    display: flex;
+  }
+
+  .permissions-title {
+    font-size: 1.4rem;
+  }
+}

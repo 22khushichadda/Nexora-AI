@@ -17,7 +17,8 @@ from app.schemas.workspace import (
 )
 
 from app.services.email_service import send_invitation_email
-from app.utils.auth import get_current_user, get_current_workspace_member
+from app.utils.auth import get_current_user, get_current_workspace_member, get_optional_user
+from app.api.rbac import check_user_permission
 
 import secrets
 from datetime import datetime, timedelta
@@ -280,9 +281,16 @@ def add_member(
 
     request: MemberRequest,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
+    if current_user and not check_user_permission(current_user, request.workspace_id, "invite_members", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Inviting members is disabled for your role."
+        )
 
     # ------------------------------------------
     # Check Workspace
@@ -609,7 +617,9 @@ def remove_member(
 
     member_id: int,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
 
@@ -639,6 +649,12 @@ def remove_member(
 
         )
 
+
+    if current_user and not check_user_permission(current_user, member.workspace_id, "remove_members", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Removing members is disabled for your role."
+        )
 
     db.delete(member)
 
@@ -666,7 +682,9 @@ def update_member_role(
 
     request: RoleUpdateRequest,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
 
@@ -694,6 +712,13 @@ def update_member_role(
 
             detail="Member not found."
 
+        )
+
+
+    if current_user and not check_user_permission(current_user, member.workspace_id, "change_member_roles", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Changing member roles is disabled for your role."
         )
 
 

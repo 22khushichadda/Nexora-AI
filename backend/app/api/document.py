@@ -13,11 +13,13 @@ import os
 import shutil
 
 from app.database.database import get_db
-from app.database.models import Document, WorkspaceMember
+from app.database.models import Document, WorkspaceMember, User
 from app.schemas.document import DocumentResponse
 
 from app.services.pdf_service import extract_pdf_data
 from app.services.background_indexer import build_document_index
+from app.utils.auth import get_optional_user
+from app.api.rbac import check_user_permission
 
 
 router = APIRouter(
@@ -56,9 +58,16 @@ def upload_document(
 
     file: UploadFile = File(...),
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
+    if current_user and not check_user_permission(current_user, workspace_id, "upload_documents", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Uploading documents is disabled for your role."
+        )
 
     filepath = os.path.join(
 
@@ -154,9 +163,16 @@ def get_documents(
 
     workspace_id: int,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
+    if current_user and not check_user_permission(current_user, workspace_id, "view_documents", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Viewing documents is disabled for your role."
+        )
 
     documents = (
 
@@ -244,7 +260,9 @@ def delete_document(
 
     user_email: str | None = None,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User | None = Depends(get_optional_user)
 
 ):
 
@@ -270,6 +288,12 @@ def delete_document(
 
             detail="Document not found."
 
+        )
+
+    if current_user and not check_user_permission(current_user, document.workspace_id, "delete_documents", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Deleting documents is disabled for your role."
         )
 
     if user_email:

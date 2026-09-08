@@ -6,7 +6,8 @@ from sqlalchemy import (
     String,
     Boolean,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    UniqueConstraint
 )
 
 from sqlalchemy.orm import (
@@ -504,3 +505,44 @@ class WorkspaceInvitation(Base):
         "Workspace",
         back_populates="invitations"
     )
+
+
+# ======================================================
+# Role Permissions Table
+# ======================================================
+
+class RolePermission(Base):
+
+    __tablename__ = "role_permissions"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id"),
+        nullable=False
+    )
+
+    role = Column(
+        String(20),
+        nullable=False
+    )
+
+    permission = Column(
+        String(50),
+        nullable=False
+    )
+
+    enabled = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "role", "permission", name="uq_workspace_role_permission"),
+    )

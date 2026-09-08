@@ -8,10 +8,13 @@ from app.database.models import (
     Document,
     Conversation,
     Message,
-    Bookmark
+    Bookmark,
+    User
 )
 
 from app.services.rag_service import ask_question
+from app.utils.auth import get_optional_user
+from app.api.rbac import check_user_permission
 
 router = APIRouter(
     prefix="/chat",
@@ -39,8 +42,14 @@ class ChatRequest(BaseModel):
 @router.post("/")
 def chat(
     request: ChatRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
 ):
+    if current_user and not check_user_permission(current_user, request.workspace_id, "ai_chat", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. AI Chat is disabled for your role."
+        )
 
     # ---------------------------------
     # Find latest document
@@ -318,8 +327,14 @@ def create_new_conversation(
 @router.get("/history/{workspace_id}")
 def get_history(
     workspace_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
 ):
+    if current_user and not check_user_permission(current_user, workspace_id, "view_history", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Viewing chat history is disabled for your role."
+        )
 
     conversations = (
         db.query(Conversation)
@@ -456,8 +471,14 @@ def bookmark_message(
 
 @router.get("/bookmarks")
 def get_bookmarks(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
 ):
+    if current_user and not check_user_permission(current_user, 7, "view_bookmarks", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Viewing bookmarks is disabled for your role."
+        )
 
     bookmarks = db.query(Bookmark).all()
 

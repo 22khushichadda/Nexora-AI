@@ -12,6 +12,7 @@ from app.api.workspace import router as workspace_router
 from app.api.document import router as document_router
 from app.api.chat import router as chat_router
 from app.api.auth import router as auth_router
+from app.api.rbac import router as rbac_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -64,6 +65,7 @@ app.include_router(auth_router)
 app.include_router(workspace_router)
 app.include_router(document_router)
 app.include_router(chat_router)
+app.include_router(rbac_router)
 
 # ---------------------------------
 # Home

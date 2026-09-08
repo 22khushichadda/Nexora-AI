@@ -9,7 +9,8 @@ import {
   Plus,
   Users,
   LogOut,
-  X
+  X,
+  ShieldCheck
 } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import NexoraLogo from "./NexoraLogo";
@@ -39,6 +40,9 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
     return name.slice(0, 2).toUpperCase();
   };
 
+  const userRole = (user?.role || "Owner").toLowerCase();
+  const isOwner = userRole === "owner";
+
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/documents", label: "Documents", icon: FileText },
@@ -46,6 +50,10 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
     { path: "/history", label: "History", icon: History },
     { path: "/team", label: "Team", icon: Users },
   ];
+
+  if (isOwner) {
+    navItems.push({ path: "/permissions", label: "Permissions", icon: ShieldCheck });
+  }
 
   return (
     <>

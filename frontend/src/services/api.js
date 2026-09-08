@@ -449,3 +449,26 @@ export const getInvitations = async (workspaceId) => {
     return response.data;
 
 };
+
+// ----------------------
+// RBAC Permissions API
+// ----------------------
+
+export const getPermissionsMatrix = async (workspaceId = WORKSPACE_ID) => {
+    const response = await API.get(`/rbac/matrix/${workspaceId}`);
+    return response.data;
+};
+
+export const togglePermission = async (role, permission, enabled, workspaceId = WORKSPACE_ID) => {
+    const response = await API.put(`/rbac/toggle/${workspaceId}`, {
+        role,
+        permission,
+        enabled
+    });
+    return response.data;
+};
+
+export const getMyPermissions = async (workspaceId = WORKSPACE_ID) => {
+    const response = await API.get(`/rbac/my-permissions/${workspaceId}`);
+    return response.data;
+};

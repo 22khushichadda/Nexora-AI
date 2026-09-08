@@ -10,6 +10,7 @@ import HistoryPage from "./pages/HistoryPage";
 import PdfViewer from "./pages/PdfViewer";
 import TeamPage from "./pages/TeamPage";
 import InvitePage from "./pages/InvitePage";
+import PermissionsPage from "./pages/PermissionsPage";
 
 function App() {
   return (
@@ -76,6 +77,15 @@ function App() {
           element={
             <ProtectedRoute>
               <TeamPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/permissions"
+          element={
+            <ProtectedRoute>
+              <PermissionsPage />
             </ProtectedRoute>
           }
         />
