@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
+from sqlalchemy import func
 from app.database.database import get_db
 
 from app.database.models import (
@@ -320,44 +321,52 @@ def add_member(
 
 
     # ------------------------------------------
-    # Check Existing Member (TEMPORARY TESTING BYPASS)
+    # Check Self Invitation / Existing Member
     # ------------------------------------------
 
-    # TEMPORARY TESTING: allow duplicate invitations for same email
-    # existing_member = (
-    #     db.query(WorkspaceMember)
-    #     .filter(
-    #         WorkspaceMember.workspace_id == request.workspace_id,
-    #         WorkspaceMember.email == request.email
-    #     )
-    #     .first()
-    # )
-    # if existing_member:
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail="This person is already a workspace member."
-    #     )
+    invited_email = request.email.strip().lower()
 
+    if current_user and current_user.email.strip().lower() == invited_email:
+        raise HTTPException(
+            status_code=400,
+            detail="This person is already a member of this workspace."
+        )
+
+    target_user = db.query(User).filter(func.lower(User.email) == invited_email).first()
+
+    existing_member = (
+        db.query(WorkspaceMember)
+        .filter(
+            WorkspaceMember.workspace_id == request.workspace_id,
+            (func.lower(WorkspaceMember.email) == invited_email) |
+            (WorkspaceMember.user_id == (target_user.id if target_user else -1))
+        )
+        .first()
+    )
+    if existing_member:
+        raise HTTPException(
+            status_code=400,
+            detail="This person is already a member of this workspace."
+        )
 
     # ------------------------------------------
-    # Check Pending Invitation (TEMPORARY TESTING BYPASS)
+    # Check Pending Invitation
     # ------------------------------------------
 
-    # TEMPORARY TESTING: allow duplicate invitations for same email
-    # existing_invitation = (
-    #     db.query(WorkspaceInvitation)
-    #     .filter(
-    #         WorkspaceInvitation.workspace_id == request.workspace_id,
-    #         WorkspaceInvitation.email == request.email,
-    #         WorkspaceInvitation.status == "pending"
-    #     )
-    #     .first()
-    # )
-    # if existing_invitation:
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail="An invitation has already been sent to this email."
-    #     )
+    existing_invitation = (
+        db.query(WorkspaceInvitation)
+        .filter(
+            WorkspaceInvitation.workspace_id == request.workspace_id,
+            func.lower(WorkspaceInvitation.email) == invited_email,
+            WorkspaceInvitation.status == "pending"
+        )
+        .first()
+    )
+    if existing_invitation:
+        raise HTTPException(
+            status_code=400,
+            detail="An active invitation has already been sent to this email."
+        )
 
 
     # ------------------------------------------

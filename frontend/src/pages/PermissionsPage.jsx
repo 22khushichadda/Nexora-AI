@@ -39,8 +39,27 @@ function PermissionsPage() {
     }
   };
 
+  const isLockedOwnerPermission = (role, key) => {
+    return role === "Owner" && (key === "view_permissions" || key === "manage_permissions");
+  };
+
   const handleToggle = async (role, permissionKey, currentVal) => {
+    if (isLockedOwnerPermission(role, permissionKey)) {
+      setError("View Permissions and Manage Permissions for Workspace Owner are locked ON and cannot be modified.");
+      return;
+    }
+
     const newVal = !currentVal;
+
+    // Protection check for Owner role lockout
+    if (role === "Owner" && !newVal) {
+      const activeOwnerCount = matrix.filter((item) => !!item.owner).length;
+      if (activeOwnerCount <= 1) {
+        setError("Cannot disable all permissions for Workspace Owner to prevent system lockout.");
+        return;
+      }
+    }
+
     setUpdatingKey(`${role}-${permissionKey}`);
 
     // Optimistic UI update
@@ -57,12 +76,15 @@ function PermissionsPage() {
     );
 
     try {
+      setError(null);
       const updatedData = await togglePermission(role, permissionKey, newVal, WORKSPACE_ID);
       if (updatedData && updatedData.matrix) {
         setMatrix(updatedData.matrix);
       }
     } catch (err) {
       console.error("Failed to update permission:", err);
+      const errMsg = err?.response?.data?.detail || "Failed to update permission setting. Reverting changes.";
+      setError(errMsg);
       // Revert optimistic update on failure
       setMatrix((prevMatrix) =>
         prevMatrix.map((item) => {
@@ -78,6 +100,32 @@ function PermissionsPage() {
     } finally {
       setUpdatingKey(null);
     }
+  };
+
+  const renderToggleCell = (role, row) => {
+    const isLocked = isLockedOwnerPermission(role, row.key);
+    const val = isLocked ? true : !!row[role.toLowerCase()];
+    const isDisabled = !isOwner || updatingKey === `${role}-${row.key}` || isLocked;
+
+    return (
+      <label
+        className="toggle-wrapper"
+        title={isLocked ? "Locked ON for Workspace Owner" : !isOwner ? "Requires Manage Permissions rights" : ""}
+      >
+        <div className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={val}
+            disabled={isDisabled}
+            onChange={() => handleToggle(role, row.key, val)}
+          />
+          <span className="toggle-slider"></span>
+        </div>
+        <span className={`toggle-label-text ${val ? "on" : "off"}`}>
+          {val ? "ON" : "OFF"} {isLocked && <Lock size={10} style={{ marginLeft: "4px" }} />}
+        </span>
+      </label>
+    );
   };
 
   if (authLoading) {
@@ -171,41 +219,13 @@ function PermissionsPage() {
                             </div>
                           </td>
                           <td className="permission-role-cell">
-                            <span className="owner-badge">
-                              <Lock size={12} /> Always ON
-                            </span>
+                            {renderToggleCell("Owner", row)}
                           </td>
                           <td className="permission-role-cell">
-                            <label className="toggle-wrapper">
-                              <div className="toggle-switch">
-                                <input
-                                  type="checkbox"
-                                  checked={!!row.admin}
-                                  disabled={updatingKey === `Admin-${row.key}`}
-                                  onChange={() => handleToggle("Admin", row.key, !!row.admin)}
-                                />
-                                <span className="toggle-slider"></span>
-                              </div>
-                              <span className={`toggle-label-text ${row.admin ? "on" : "off"}`}>
-                                {row.admin ? "ON" : "OFF"}
-                              </span>
-                            </label>
+                            {renderToggleCell("Admin", row)}
                           </td>
                           <td className="permission-role-cell">
-                            <label className="toggle-wrapper">
-                              <div className="toggle-switch">
-                                <input
-                                  type="checkbox"
-                                  checked={!!row.member}
-                                  disabled={updatingKey === `Member-${row.key}`}
-                                  onChange={() => handleToggle("Member", row.key, !!row.member)}
-                                />
-                                <span className="toggle-slider"></span>
-                              </div>
-                              <span className={`toggle-label-text ${row.member ? "on" : "off"}`}>
-                                {row.member ? "ON" : "OFF"}
-                              </span>
-                            </label>
+                            {renderToggleCell("Member", row)}
                           </td>
                         </tr>
                       ))}
@@ -222,43 +242,15 @@ function PermissionsPage() {
                     <div className="permission-mobile-roles">
                       <div className="permission-mobile-role-row">
                         <span className="role-tag">Owner</span>
-                        <span className="owner-badge">
-                          <Lock size={12} /> Always ON
-                        </span>
+                        {renderToggleCell("Owner", row)}
                       </div>
                       <div className="permission-mobile-role-row">
                         <span className="role-tag">Admin</span>
-                        <label className="toggle-wrapper">
-                          <div className="toggle-switch">
-                            <input
-                              type="checkbox"
-                              checked={!!row.admin}
-                              disabled={updatingKey === `Admin-${row.key}`}
-                              onChange={() => handleToggle("Admin", row.key, !!row.admin)}
-                            />
-                            <span className="toggle-slider"></span>
-                          </div>
-                          <span className={`toggle-label-text ${row.admin ? "on" : "off"}`}>
-                            {row.admin ? "ON" : "OFF"}
-                          </span>
-                        </label>
+                        {renderToggleCell("Admin", row)}
                       </div>
                       <div className="permission-mobile-role-row">
                         <span className="role-tag">Member</span>
-                        <label className="toggle-wrapper">
-                          <div className="toggle-switch">
-                            <input
-                              type="checkbox"
-                              checked={!!row.member}
-                              disabled={updatingKey === `Member-${row.key}`}
-                              onChange={() => handleToggle("Member", row.key, !!row.member)}
-                            />
-                            <span className="toggle-slider"></span>
-                          </div>
-                          <span className={`toggle-label-text ${row.member ? "on" : "off"}`}>
-                            {row.member ? "ON" : "OFF"}
-                          </span>
-                        </label>
+                        {renderToggleCell("Member", row)}
                       </div>
                     </div>
                   </div>

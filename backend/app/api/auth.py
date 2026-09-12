@@ -13,7 +13,8 @@ from app.utils.auth import (
     hash_password,
     verify_password,
     create_access_token,
-    get_current_user
+    get_current_user,
+    get_current_workspace_member
 )
 
 router = APIRouter(
@@ -22,56 +23,11 @@ router = APIRouter(
 )
 
 
-from sqlalchemy import func
-
-
 def _get_user_role(user: User, db: Session, workspace_id: int = 7) -> str:
-    member = db.query(WorkspaceMember).filter(
-        (WorkspaceMember.user_id == user.id) | (func.lower(WorkspaceMember.email) == func.lower(user.email))
-    ).first()
-
-    if member:
-        if member.user_id is None:
-            member.user_id = user.id
-            db.commit()
-
-        target_ws_id = member.workspace_id or workspace_id
-
-        oldest_member = db.query(WorkspaceMember).filter(
-            WorkspaceMember.workspace_id == target_ws_id
-        ).order_by(WorkspaceMember.id.asc()).first()
-
-        if oldest_member and oldest_member.id == member.id:
-            if (member.role or "").strip().lower() != "owner":
-                member.role = "Owner"
-                db.commit()
-                db.refresh(member)
-
-        return (member.role or "Member").strip().capitalize()
-
-    first_in_ws = db.query(WorkspaceMember).filter(
-        WorkspaceMember.workspace_id == workspace_id
-    ).first()
-
-    owner_exists = db.query(WorkspaceMember).filter(
-        WorkspaceMember.workspace_id == workspace_id,
-        func.lower(WorkspaceMember.role) == "owner"
-    ).first()
-
-    new_role = "Owner" if (not first_in_ws or not owner_exists) else "Member"
-
-    new_member = WorkspaceMember(
-        workspace_id=workspace_id,
-        name=user.name,
-        email=user.email.lower(),
-        role=new_role,
-        user_id=user.id
-    )
-    db.add(new_member)
-    db.commit()
-    db.refresh(new_member)
-
-    return new_role
+    member = get_current_workspace_member(workspace_id, user, db)
+    if not member:
+        return "Member"
+    return (member.role or "Member").strip().capitalize()
 
 
 # ======================================================

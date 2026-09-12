@@ -460,7 +460,7 @@ export const getPermissionsMatrix = async (workspaceId = WORKSPACE_ID) => {
 };
 
 export const togglePermission = async (role, permission, enabled, workspaceId = WORKSPACE_ID) => {
-    const response = await API.put(`/rbac/toggle/${workspaceId}`, {
+    const response = await API.patch(`/rbac/toggle/${workspaceId}`, {
         role,
         permission,
         enabled

@@ -40,7 +40,7 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
     return name.slice(0, 2).toUpperCase();
   };
 
-  const userRole = (user?.role || "Owner").toLowerCase();
+  const userRole = (user?.role || "").trim().toLowerCase();
   const isOwner = userRole === "owner";
 
   const navItems = [

@@ -410,6 +410,10 @@ class WorkspaceMember(Base):
         back_populates="memberships"
     )
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "workspace_id", name="uq_user_workspace_member"),
+    )
+
 
 # ======================================================
 # Workspace Invitations

@@ -32,7 +32,12 @@ export function AuthProvider({ children }) {
         const data = await loginUser(credentials);
         localStorage.setItem("nexora_token", data.access_token);
         setToken(data.access_token);
-        setUser(data.user);
+        try {
+            const freshUser = await getCurrentUser();
+            setUser(freshUser);
+        } catch {
+            setUser(data.user);
+        }
         return data;
     };
 
@@ -40,7 +45,12 @@ export function AuthProvider({ children }) {
         const data = await registerUser(userData);
         localStorage.setItem("nexora_token", data.access_token);
         setToken(data.access_token);
-        setUser(data.user);
+        try {
+            const freshUser = await getCurrentUser();
+            setUser(freshUser);
+        } catch {
+            setUser(data.user);
+        }
         return data;
     };
 

@@ -32,6 +32,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -59,13 +61,14 @@ def get_current_user(
             JWT_SECRET_KEY,
             algorithms=[JWT_ALGORITHM]
         )
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        sub_val = payload.get("sub")
+        if sub_val is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token.",
             )
-    except jwt.PyJWTError:
+        user_id = int(sub_val)
+    except (jwt.PyJWTError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials.",
@@ -110,57 +113,34 @@ def get_current_workspace_member(
     from app.database.models import WorkspaceMember
     from sqlalchemy import func
 
+    if workspace_id is None:
+        return None
+
+    # Exact lookup by matching (user_id, workspace_id)
     member = (
         db.query(WorkspaceMember)
         .filter(
-            WorkspaceMember.workspace_id == workspace_id,
-            (WorkspaceMember.user_id == current_user.id) | (func.lower(WorkspaceMember.email) == func.lower(current_user.email))
+            WorkspaceMember.user_id == current_user.id,
+            WorkspaceMember.workspace_id == workspace_id
         )
         .first()
     )
 
+    # Fallback: link unlinked member record if matching by email and user_id is NULL
     if not member:
-        oldest_member = (
-            db.query(WorkspaceMember)
-            .filter(WorkspaceMember.workspace_id == workspace_id)
-            .order_by(WorkspaceMember.id.asc())
-            .first()
-        )
-        owner_exists = (
+        member = (
             db.query(WorkspaceMember)
             .filter(
                 WorkspaceMember.workspace_id == workspace_id,
-                func.lower(WorkspaceMember.role) == "owner"
+                WorkspaceMember.user_id.is_(None),
+                func.lower(WorkspaceMember.email) == func.lower(current_user.email)
             )
             .first()
         )
-        new_role = "Owner" if (not oldest_member or not owner_exists) else "Member"
-        member = WorkspaceMember(
-            workspace_id=workspace_id,
-            name=current_user.name,
-            email=current_user.email.lower(),
-            role=new_role,
-            user_id=current_user.id
-        )
-        db.add(member)
-        db.commit()
-        db.refresh(member)
-    else:
-        if member.user_id is None:
+        if member:
             member.user_id = current_user.id
-
-        oldest_member = (
-            db.query(WorkspaceMember)
-            .filter(WorkspaceMember.workspace_id == workspace_id)
-            .order_by(WorkspaceMember.id.asc())
-            .first()
-        )
-        if oldest_member and oldest_member.id == member.id:
-            if (member.role or "").strip().lower() != "owner":
-                member.role = "Owner"
-
-        db.commit()
-        db.refresh(member)
+            db.commit()
+            db.refresh(member)
 
     return member
 

@@ -18,18 +18,32 @@ router = APIRouter(
 
 PERMISSION_DEFINITIONS = [
     {"key": "view_documents", "label": "View Documents"},
-    {"key": "upload_documents", "label": "Upload Documents"},
-    {"key": "delete_documents", "label": "Delete Documents"},
+    {"key": "upload_documents", "label": "Create / Upload Document"},
+    {"key": "delete_documents", "label": "Delete Document"},
     {"key": "ai_chat", "label": "AI Chat"},
     {"key": "view_history", "label": "View History"},
     {"key": "view_bookmarks", "label": "Bookmarks"},
-    {"key": "invite_members", "label": "Invite Members"},
-    {"key": "remove_members", "label": "Remove Members"},
-    {"key": "change_member_roles", "label": "Change Member Roles"},
-    {"key": "manage_workspace", "label": "Manage Workspace"},
+    {"key": "invite_members", "label": "Invite Member"},
+    {"key": "remove_members", "label": "Remove Member"},
+    {"key": "view_permissions", "label": "View Permissions"},
+    {"key": "manage_permissions", "label": "Manage Permissions"},
+    {"key": "manage_billing", "label": "Manage Billing"},
 ]
 
 DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
+    "Owner": {
+        "view_documents": True,
+        "upload_documents": True,
+        "delete_documents": True,
+        "ai_chat": True,
+        "view_history": True,
+        "view_bookmarks": True,
+        "invite_members": True,
+        "remove_members": True,
+        "view_permissions": True,
+        "manage_permissions": True,
+        "manage_billing": True,
+    },
     "Admin": {
         "view_documents": True,
         "upload_documents": True,
@@ -39,8 +53,9 @@ DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
         "view_bookmarks": True,
         "invite_members": True,
         "remove_members": True,
-        "change_member_roles": False,
-        "manage_workspace": False,
+        "view_permissions": True,
+        "manage_permissions": False,
+        "manage_billing": False,
     },
     "Member": {
         "view_documents": True,
@@ -51,8 +66,9 @@ DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
         "view_bookmarks": True,
         "invite_members": False,
         "remove_members": False,
-        "change_member_roles": False,
-        "manage_workspace": False,
+        "view_permissions": True,
+        "manage_permissions": False,
+        "manage_billing": False,
     }
 }
 
@@ -66,7 +82,7 @@ class TogglePermissionRequest(BaseModel):
 def get_or_init_permissions(db: Session, workspace_id: int) -> Dict[str, Dict[str, bool]]:
     """
     Fetch stored permissions from PostgreSQL. If missing, seed defaults.
-    Returns: {"Admin": {key: val}, "Member": {key: val}}
+    Returns: {"Owner": {key: val}, "Admin": {key: val}, "Member": {key: val}}
     """
     db_perms = db.query(RolePermission).filter(
         RolePermission.workspace_id == workspace_id
@@ -139,10 +155,11 @@ def verify_owner_access(user: User, workspace_id: int, db: Session):
 
 
 # ======================================================
-# Get Permission Matrix (Owner Only)
+# Get Permission Matrix (Owner / Authorized Users)
 # ======================================================
 
 @router.get("/matrix/{workspace_id}")
+@router.get("/permissions/{workspace_id}")
 def get_permission_matrix(
     workspace_id: int,
     current_user: User = Depends(get_current_user),
@@ -157,7 +174,7 @@ def get_permission_matrix(
         matrix.append({
             "key": pkey,
             "label": defn["label"],
-            "owner": True, # Owner is always ON
+            "owner": perm_map.get("Owner", {}).get(pkey, DEFAULT_PERMISSIONS["Owner"].get(pkey, True)),
             "admin": perm_map.get("Admin", {}).get(pkey, DEFAULT_PERMISSIONS["Admin"].get(pkey, True)),
             "member": perm_map.get("Member", {}).get(pkey, DEFAULT_PERMISSIONS["Member"].get(pkey, False))
         })
@@ -170,10 +187,13 @@ def get_permission_matrix(
 
 
 # ======================================================
-# Toggle Permission (Owner Only)
+# Toggle Permission (PATCH / PUT)
 # ======================================================
 
 @router.put("/toggle/{workspace_id}")
+@router.patch("/toggle/{workspace_id}")
+@router.put("/permissions/{workspace_id}")
+@router.patch("/permissions/{workspace_id}")
 def toggle_permission(
     workspace_id: int,
     request: TogglePermissionRequest,
@@ -183,13 +203,21 @@ def toggle_permission(
     verify_owner_access(current_user, workspace_id, db)
 
     target_role = request.role.strip().capitalize()
-    if target_role not in ["Admin", "Member"]:
+    if target_role not in ["Owner", "Admin", "Member"]:
         raise HTTPException(
             status_code=400,
-            detail="Can only modify Admin or Member permissions."
+            detail="Can only modify Owner, Admin, or Member permissions."
         )
 
     pkey = request.permission.strip()
+
+    # Protect locked Owner permissions (View Permissions & Manage Permissions must stay ON)
+    if target_role == "Owner" and pkey in ["view_permissions", "manage_permissions"] and not request.enabled:
+        raise HTTPException(
+            status_code=400,
+            detail="View Permissions and Manage Permissions for Workspace Owner are locked ON and cannot be disabled."
+        )
+
     valid_keys = [d["key"] for d in PERMISSION_DEFINITIONS]
     if pkey not in valid_keys:
         raise HTTPException(
