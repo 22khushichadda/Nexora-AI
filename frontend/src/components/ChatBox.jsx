@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Plus, ArrowUp, FileText, X, Sparkles, FileSearch, HelpCircle, Clock, Scale } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
 import Message from "./Message";
 import {
   uploadDocument,
@@ -9,8 +10,12 @@ import {
 import "../styles/chat.css";
 
 function ChatBox({ conversation, onSelectPrompt }) {
+  const { permissions, isOwner } = useAuth();
   const fileInput = useRef();
   const chatBottomRef = useRef();
+
+  const canUpload = isOwner || permissions?.upload_documents !== false;
+  const canChat = isOwner || permissions?.ai_chat !== false;
 
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -237,8 +242,10 @@ function ChatBox({ conversation, onSelectPrompt }) {
           <div className="chat-box">
             <button
               className="plus-btn"
-              title="Upload PDF Document"
-              onClick={() => fileInput.current.click()}
+              title={canUpload ? "Upload PDF Document" : "Uploading documents is disabled for your role"}
+              disabled={!canUpload || loading || processing}
+              onClick={() => canUpload && fileInput.current.click()}
+              style={{ opacity: canUpload ? 1 : 0.4, cursor: canUpload ? "pointer" : "not-allowed" }}
             >
               <Plus size={20} />
             </button>
@@ -247,14 +254,16 @@ function ChatBox({ conversation, onSelectPrompt }) {
               className="chat-input-field"
               value={question}
               placeholder={
-                processing
+                !canChat
+                  ? "AI Chat is disabled for your role..."
+                  : processing
                   ? "Analyzing the document..."
                   : "Ask Nexora anything about your documents..."
               }
-              disabled={processing}
+              disabled={processing || !canChat}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && canChat) {
                   e.preventDefault();
                   handleAsk();
                 }
@@ -263,9 +272,9 @@ function ChatBox({ conversation, onSelectPrompt }) {
 
             <button
               className="send-btn"
-              onClick={() => handleAsk()}
-              disabled={loading || processing || !question.trim()}
-              title="Send Prompt"
+              onClick={() => canChat && handleAsk()}
+              disabled={loading || processing || !question.trim() || !canChat}
+              title={canChat ? "Send Prompt" : "AI Chat is disabled for your role"}
             >
               <ArrowUp size={18} />
             </button>

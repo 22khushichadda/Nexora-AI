@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Bookmark, Copy, Check, Bot, User } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
 import { addBookmark } from "../services/api";
 import "../styles/message.css";
 
 function Message({ sender, text, messageId }) {
+  const { permissions, isOwner } = useAuth();
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const canBookmark = isOwner || permissions?.view_bookmarks !== false;
 
   // Safeguard: Do not render empty or whitespace-only messages
   if (!text || (typeof text === "string" && !text.trim())) {
@@ -20,7 +24,7 @@ function Message({ sender, text, messageId }) {
 
   const handleBookmark = async () => {
     try {
-      if (messageId) {
+      if (messageId && canBookmark) {
         await addBookmark(messageId);
         setBookmarked(true);
       }
@@ -47,18 +51,20 @@ function Message({ sender, text, messageId }) {
         {/* Action Controls (Bookmark & Copy) below AI Answer ONLY */}
         {sender === "ai" && (
           <div className="message-actions">
-            <button
-              className={`bookmark-btn ${bookmarked ? "active" : ""}`}
-              onClick={handleBookmark}
-              title="Bookmark Answer"
-            >
-              <Bookmark
-                size={14}
-                fill={bookmarked ? "#8B5CF6" : "none"}
-                color={bookmarked ? "#8B5CF6" : "currentColor"}
-              />
-              <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
-            </button>
+            {canBookmark && (
+              <button
+                className={`bookmark-btn ${bookmarked ? "active" : ""}`}
+                onClick={handleBookmark}
+                title="Bookmark Answer"
+              >
+                <Bookmark
+                  size={14}
+                  fill={bookmarked ? "#8B5CF6" : "none"}
+                  color={bookmarked ? "#8B5CF6" : "currentColor"}
+                />
+                <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
+              </button>
+            )}
 
             <button className="copy-btn" onClick={handleCopy} title="Copy Answer">
               {copied ? <Check size={14} color="#10B981" /> : <Copy size={14} />}

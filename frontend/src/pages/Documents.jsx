@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
 import {
@@ -7,24 +8,41 @@ import {
   Clock,
   Trash2,
   Users,
-  User
+  User,
+  ShieldAlert,
+  ArrowLeft
 } from "lucide-react";
+import { useAuth } from "../components/context/AuthContext";
 import { getDocuments, deleteDocument } from "../services/api";
 import "../styles/documents.css";
 
 function Documents() {
+  const navigate = useNavigate();
+  const { permissions, isOwner } = useAuth();
   const [documents, setDocuments] = useState([]);
+  const [forbidden, setForbidden] = useState(false);
+
+  const canView = isOwner || permissions?.view_documents !== false;
+  const canDelete = isOwner || permissions?.delete_documents !== false;
 
   useEffect(() => {
-    fetchDocuments();
-  }, []);
+    if (canView) {
+      fetchDocuments();
+    } else {
+      setForbidden(true);
+    }
+  }, [permissions, isOwner]);
 
   const fetchDocuments = async () => {
     try {
+      setForbidden(false);
       const data = await getDocuments();
       setDocuments(data);
     } catch (err) {
       console.log("Error fetching documents:", err);
+      if (err?.response?.status === 403) {
+        setForbidden(true);
+      }
     }
   };
 
@@ -67,6 +85,30 @@ function Documents() {
     }
     return <Clock size={14} />;
   };
+
+  if (forbidden) {
+    return (
+      <DashboardLayout>
+        <PageTransition>
+          <div className="documents-page">
+            <div className="rbac-forbidden-box">
+              <div className="forbidden-icon-wrap">
+                <ShieldAlert size={32} />
+              </div>
+              <h2 className="forbidden-title">HTTP 403 - Forbidden</h2>
+              <p className="forbidden-desc">
+                Viewing documents is disabled for your role in this workspace.
+              </p>
+              <button onClick={() => navigate("/dashboard")} className="back-btn">
+                <ArrowLeft size={16} />
+                Return to Dashboard
+              </button>
+            </div>
+          </div>
+        </PageTransition>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -134,22 +176,24 @@ function Documents() {
                         <Users size={12} /> Shared
                       </span>
 
-                      <button
-                        onClick={() => handleDeleteDocument(doc.id)}
-                        title="Delete Document"
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          color: "#ef4444",
-                          cursor: "pointer",
-                          padding: "4px",
-                          marginLeft: "auto",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          title="Delete Document"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: "4px",
+                            marginLeft: "auto",
+                            display: "inline-flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

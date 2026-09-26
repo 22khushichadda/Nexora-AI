@@ -284,13 +284,21 @@ def add_member(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
-    if current_user and not check_user_permission(current_user, request.workspace_id, "invite_members", db):
+    if not check_user_permission(current_user, request.workspace_id, "invite_members", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Inviting members is disabled for your role."
+        )
+
+    requester = get_current_workspace_member(request.workspace_id, current_user, db)
+    requester_role = (requester.role or "Member").strip().capitalize() if requester else "Member"
+    if request.role.strip().capitalize() == "Owner" and requester_role != "Owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Only the Workspace Owner can invite someone as Owner."
         )
 
     # ------------------------------------------
@@ -628,7 +636,7 @@ def remove_member(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
 
@@ -659,10 +667,18 @@ def remove_member(
         )
 
 
-    if current_user and not check_user_permission(current_user, member.workspace_id, "remove_members", db):
+    if not check_user_permission(current_user, member.workspace_id, "remove_members", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Removing members is disabled for your role."
+        )
+
+    requester = get_current_workspace_member(member.workspace_id, current_user, db)
+    requester_role = (requester.role or "Member").strip().capitalize() if requester else "Member"
+    if (member.role or "Member").strip().capitalize() == "Owner" and requester_role != "Owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Only the Workspace Owner can remove an Owner."
         )
 
     db.delete(member)
@@ -693,7 +709,7 @@ def update_member_role(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
 
@@ -724,14 +740,24 @@ def update_member_role(
         )
 
 
-    if current_user and not check_user_permission(current_user, member.workspace_id, "change_member_roles", db):
+    if not check_user_permission(current_user, member.workspace_id, "change_member_roles", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Changing member roles is disabled for your role."
         )
 
+    requester = get_current_workspace_member(member.workspace_id, current_user, db)
+    requester_role = (requester.role or "Member").strip().capitalize() if requester else "Member"
+    target_new_role = request.role.strip().capitalize()
+    target_curr_role = (member.role or "Member").strip().capitalize()
 
-    member.role = request.role
+    if requester_role != "Owner" and (target_new_role == "Owner" or target_curr_role == "Owner"):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Only the Workspace Owner can assign or modify the Owner role."
+        )
+
+    member.role = target_new_role
 
     db.commit()
 

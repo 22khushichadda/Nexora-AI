@@ -13,7 +13,7 @@ from app.database.models import (
 )
 
 from app.services.rag_service import ask_question
-from app.utils.auth import get_optional_user
+from app.utils.auth import get_current_user
 from app.api.rbac import check_user_permission
 
 router = APIRouter(
@@ -43,9 +43,9 @@ class ChatRequest(BaseModel):
 def chat(
     request: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 ):
-    if current_user and not check_user_permission(current_user, request.workspace_id, "ai_chat", db):
+    if not check_user_permission(current_user, request.workspace_id, "ai_chat", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. AI Chat is disabled for your role."
@@ -183,7 +183,7 @@ def chat(
         db.refresh(conversation)
 
     try:
-                # ---------------------------------
+        # ---------------------------------
         # Save User Message
         # ---------------------------------
 
@@ -213,7 +213,7 @@ def chat(
 
         )
 
-               # ---------------------------------
+        # ---------------------------------
         # Save AI Message
         # ---------------------------------
 
@@ -272,9 +272,16 @@ def create_new_conversation(
 
     request: NewConversationRequest,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User = Depends(get_current_user)
 
 ):
+    if not check_user_permission(current_user, request.workspace_id, "ai_chat", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. AI Chat is disabled for your role."
+        )
 
     # Deactivate previous conversations
 
@@ -320,7 +327,8 @@ def create_new_conversation(
 
     }
 
-    # ======================================================
+
+# ======================================================
 # Get Conversation History
 # ======================================================
 
@@ -328,9 +336,9 @@ def create_new_conversation(
 def get_history(
     workspace_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 ):
-    if current_user and not check_user_permission(current_user, workspace_id, "view_history", db):
+    if not check_user_permission(current_user, workspace_id, "view_history", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Viewing chat history is disabled for your role."
@@ -364,6 +372,8 @@ def get_history(
         })
 
     return history
+
+
 # ======================================================
 # Get One Conversation
 # ======================================================
@@ -371,7 +381,8 @@ def get_history(
 @router.get("/conversation/{conversation_id}")
 def get_conversation(
     conversation_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
 
     conversation = (
@@ -387,6 +398,12 @@ def get_conversation(
         raise HTTPException(
             status_code=404,
             detail="Conversation not found."
+        )
+
+    if not check_user_permission(current_user, conversation.workspace_id, "view_history", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Viewing chat history is disabled for your role."
         )
 
     messages = (
@@ -410,19 +427,21 @@ def get_conversation(
 
             {
 
-    "id": msg.id,
+                "id": msg.id,
 
-    "sender": "user" if msg.role == "user" else "ai",
+                "sender": "user" if msg.role == "user" else "ai",
 
-    "text": msg.content
+                "text": msg.content
 
-}
+            }
 
             for msg in messages
 
         ]
 
     }
+
+
 # ======================================================
 # Add Bookmark
 # ======================================================
@@ -430,8 +449,18 @@ def get_conversation(
 @router.post("/bookmark/{message_id}")
 def bookmark_message(
     message_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    msg = db.query(Message).filter(Message.id == message_id).first()
+    if not msg or not msg.conversation:
+        raise HTTPException(status_code=404, detail="Message not found.")
+
+    if not check_user_permission(current_user, msg.conversation.workspace_id, "view_bookmarks", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Bookmarking is disabled for your role."
+        )
 
     existing = db.query(Bookmark).filter(
         Bookmark.message_id == message_id
@@ -465,22 +494,26 @@ def bookmark_message(
 
     }
 
-    # ======================================================
+
+# ======================================================
 # Get All Bookmarks
 # ======================================================
 
 @router.get("/bookmarks")
 def get_bookmarks(
+    workspace_id: int = 7,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 ):
-    if current_user and not check_user_permission(current_user, 7, "view_bookmarks", db):
+    if not check_user_permission(current_user, workspace_id, "view_bookmarks", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Viewing bookmarks is disabled for your role."
         )
 
-    bookmarks = db.query(Bookmark).all()
+    bookmarks = db.query(Bookmark).join(Message).join(Conversation).filter(
+        Conversation.workspace_id == workspace_id
+    ).all()
 
     result = []
 
@@ -488,22 +521,24 @@ def get_bookmarks(
 
         result.append({
 
-    "bookmark_id": bookmark.id,
+            "bookmark_id": bookmark.id,
 
-    "message_id": bookmark.message.id,
+            "message_id": bookmark.message.id,
 
-    "conversation_id": bookmark.message.conversation_id,
+            "conversation_id": bookmark.message.conversation_id,
 
-    "conversation_title":
-        bookmark.message.conversation.title,
+            "conversation_title":
+                bookmark.message.conversation.title,
 
-    "answer": bookmark.message.content,
+            "answer": bookmark.message.content,
 
-    "created_at": bookmark.created_at
+            "created_at": bookmark.created_at
 
-})
+        })
 
     return result
+
+
 # ======================================================
 # Delete Bookmark
 # ======================================================
@@ -511,7 +546,8 @@ def get_bookmarks(
 @router.delete("/bookmark/{message_id}")
 def delete_bookmark(
     message_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
 
     bookmark = db.query(Bookmark).filter(
@@ -528,6 +564,12 @@ def delete_bookmark(
 
             detail="Bookmark not found."
 
+        )
+
+    if not check_user_permission(current_user, bookmark.message.conversation.workspace_id, "view_bookmarks", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Bookmarking is disabled for your role."
         )
 
     db.delete(bookmark)

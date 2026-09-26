@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
 import { Users, UserPlus, Shield, Trash2, Mail, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { useAuth } from "../components/context/AuthContext";
 import {
   getMembers,
   getInvitations,
@@ -13,6 +14,7 @@ import {
 import "../styles/team.css";
 
 function TeamPage() {
+  const { permissions, isOwner } = useAuth();
   const [members, setMembers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,6 +23,10 @@ function TeamPage() {
   const [inviteMessage, setInviteMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState([]);
+
+  const canInvite = isOwner || permissions?.invite_members !== false;
+  const canRemove = isOwner || permissions?.remove_members !== false;
+  const canChangeRole = isOwner || permissions?.change_member_roles !== false;
 
   useEffect(() => {
     loadMembers();
@@ -126,101 +132,103 @@ function TeamPage() {
             </p>
           </div>
 
-          {/* Invite Member Card */}
-          <div className="glass-card team-card">
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
-              <div
-                style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "10px",
-                  background: "var(--light-lavender)",
-                  color: "var(--primary-purple)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0
-                }}
-              >
-                <UserPlus size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>Invite Team Member</h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>
-                  Send an email invitation link to collaborate in this workspace
-                </p>
-              </div>
-            </div>
-
-            <div className="team-form-grid">
-              <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sarah Connor"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="sarah@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
-                  Role & Permissions
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  disabled={loading}
+          {/* Invite Member Card (Only visible if authorized) */}
+          {canInvite && (
+            <div className="glass-card team-card">
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
+                    background: "var(--light-lavender)",
+                    color: "var(--primary-purple)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}
                 >
-                  <option value="Member">Member</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Owner">Owner</option>
-                </select>
+                  <UserPlus size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>Invite Team Member</h3>
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0 }}>
+                    Send an email invitation link to collaborate in this workspace
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <button
-              className="primary-btn invite-btn"
-              onClick={handleAddMember}
-              disabled={loading}
-            >
-              <Mail size={18} />
-              <span>{loading ? "Sending Invitation..." : "Send Invite"}</span>
-            </button>
+              <div className="team-form-grid">
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sarah Connor"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
 
-            {inviteMessage && (
-              <p
-                style={{
-                  marginTop: "14px",
-                  fontSize: "0.88rem",
-                  fontWeight: 600,
-                  color: isSuccess ? "#16A34A" : "#DC2626",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="sarah@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>
+                    Role & Permissions
+                  </label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    disabled={loading}
+                  >
+                    <option value="Member">Member</option>
+                    <option value="Admin">Admin</option>
+                    {isOwner && <option value="Owner">Owner</option>}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                className="primary-btn invite-btn"
+                onClick={handleAddMember}
+                disabled={loading}
               >
-                {isSuccess ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                <span>{inviteMessage}</span>
-              </p>
-            )}
-          </div>
+                <Mail size={18} />
+                <span>{loading ? "Sending Invitation..." : "Send Invite"}</span>
+              </button>
+
+              {inviteMessage && (
+                <p
+                  style={{
+                    marginTop: "14px",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                    color: isSuccess ? "#16A34A" : "#DC2626",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  {isSuccess ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                  <span>{inviteMessage}</span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Pending Invitations */}
           {pendingInvitations.length > 0 && (
@@ -289,13 +297,15 @@ function TeamPage() {
                       <div className="member-info">
                         <div className="member-card-header">
                           <h4 className="member-name">{mem.name}</h4>
-                          <button
-                            className="delete-member-btn mobile-only-delete"
-                            title="Remove Member"
-                            onClick={() => handleRemoveMember(mem.id)}
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          {canRemove && mem.role !== "Owner" && (
+                            <button
+                              className="delete-member-btn mobile-only-delete"
+                              title="Remove Member"
+                              onClick={() => handleRemoveMember(mem.id)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                         </div>
                         <p className="member-email">{mem.email}</p>
                       </div>
@@ -307,19 +317,22 @@ function TeamPage() {
                         value={mem.role}
                         onChange={(e) => handleRoleChange(mem.id, e.target.value)}
                         className="member-role-select"
+                        disabled={!canChangeRole || mem.role === "Owner"}
                       >
                         <option value="Member">Member</option>
                         <option value="Admin">Admin</option>
-                        <option value="Owner">Owner</option>
+                        {isOwner && <option value="Owner">Owner</option>}
                       </select>
 
-                      <button
-                        className="delete-member-btn desktop-only-delete"
-                        title="Remove Member"
-                        onClick={() => handleRemoveMember(mem.id)}
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {canRemove && mem.role !== "Owner" && (
+                        <button
+                          className="delete-member-btn desktop-only-delete"
+                          title="Remove Member"
+                          onClick={() => handleRemoveMember(mem.id)}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

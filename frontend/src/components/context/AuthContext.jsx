@@ -1,12 +1,30 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentUser, loginUser, registerUser, logoutUser } from "../../services/api";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { getCurrentUser, loginUser, registerUser, logoutUser, getMyPermissions, WORKSPACE_ID } from "../../services/api";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem("nexora_token") || null);
+    const [permissions, setPermissions] = useState({});
+    const [userRole, setUserRole] = useState("Member");
+    const [isOwner, setIsOwner] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const refreshPermissions = useCallback(async (workspaceId = WORKSPACE_ID) => {
+        const storedToken = localStorage.getItem("nexora_token");
+        if (!storedToken) return;
+        try {
+            const data = await getMyPermissions(workspaceId);
+            if (data) {
+                setPermissions(data.permissions || {});
+                setUserRole(data.role || "Member");
+                setIsOwner(!!data.is_owner);
+            }
+        } catch (err) {
+            console.log("Failed to refresh user permissions:", err);
+        }
+    }, []);
 
     useEffect(() => {
         const initAuth = async () => {
@@ -16,17 +34,21 @@ export function AuthProvider({ children }) {
                     const userData = await getCurrentUser();
                     setUser(userData);
                     setToken(storedToken);
+                    await refreshPermissions();
                 } catch (err) {
                     console.log("Auth session expired or invalid:", err);
                     localStorage.removeItem("nexora_token");
                     setUser(null);
                     setToken(null);
+                    setPermissions({});
+                    setUserRole("Member");
+                    setIsOwner(false);
                 }
             }
             setLoading(false);
         };
         initAuth();
-    }, []);
+    }, [refreshPermissions]);
 
     const login = async (credentials) => {
         const data = await loginUser(credentials);
@@ -38,6 +60,7 @@ export function AuthProvider({ children }) {
         } catch {
             setUser(data.user);
         }
+        await refreshPermissions();
         return data;
     };
 
@@ -51,6 +74,7 @@ export function AuthProvider({ children }) {
         } catch {
             setUser(data.user);
         }
+        await refreshPermissions();
         return data;
     };
 
@@ -59,6 +83,9 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("nexora_token");
         setUser(null);
         setToken(null);
+        setPermissions({});
+        setUserRole("Member");
+        setIsOwner(false);
     };
 
     return (
@@ -66,6 +93,10 @@ export function AuthProvider({ children }) {
             value={{
                 user,
                 token,
+                permissions,
+                userRole,
+                isOwner,
+                refreshPermissions,
                 loading,
                 login,
                 register,

@@ -9,12 +9,14 @@ import "../styles/permissions.css";
 
 function PermissionsPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, permissions: myPermissions, isOwner: isUserOwner, refreshPermissions } = useAuth();
   const [matrix, setMatrix] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingKey, setUpdatingKey] = useState(null);
-  const [isOwner, setIsOwner] = useState(true);
+  const [hasViewAccess, setHasViewAccess] = useState(true);
+
+  const canManage = isUserOwner || !!myPermissions?.manage_permissions;
 
   useEffect(() => {
     loadMatrix();
@@ -25,12 +27,12 @@ function PermissionsPage() {
       setLoading(true);
       const data = await getPermissionsMatrix(WORKSPACE_ID);
       setMatrix(data.matrix || []);
-      setIsOwner(true);
+      setHasViewAccess(true);
       setError(null);
     } catch (err) {
       console.error("Failed to load permissions matrix:", err);
       if (err?.response?.status === 403) {
-        setIsOwner(false);
+        setHasViewAccess(false);
       } else {
         setError("Failed to load permission settings. Please try again.");
       }
@@ -43,23 +45,25 @@ function PermissionsPage() {
     return role === "Owner" && (key === "view_permissions" || key === "manage_permissions");
   };
 
+  const isRoleToggleAllowedForUser = (targetRole) => {
+    if (!canManage) return false;
+    if (isUserOwner) return targetRole === "Admin" || targetRole === "Member";
+    // Admins / Members with manage_permissions can ONLY toggle Member permissions
+    return targetRole === "Member";
+  };
+
   const handleToggle = async (role, permissionKey, currentVal) => {
     if (isLockedOwnerPermission(role, permissionKey)) {
       setError("View Permissions and Manage Permissions for Workspace Owner are locked ON and cannot be modified.");
       return;
     }
 
-    const newVal = !currentVal;
-
-    // Protection check for Owner role lockout
-    if (role === "Owner" && !newVal) {
-      const activeOwnerCount = matrix.filter((item) => !!item.owner).length;
-      if (activeOwnerCount <= 1) {
-        setError("Cannot disable all permissions for Workspace Owner to prevent system lockout.");
-        return;
-      }
+    if (!isRoleToggleAllowedForUser(role)) {
+      setError("You are authorized to manage only Member permissions.");
+      return;
     }
 
+    const newVal = !currentVal;
     setUpdatingKey(`${role}-${permissionKey}`);
 
     // Optimistic UI update
@@ -81,6 +85,7 @@ function PermissionsPage() {
       if (updatedData && updatedData.matrix) {
         setMatrix(updatedData.matrix);
       }
+      await refreshPermissions();
     } catch (err) {
       console.error("Failed to update permission:", err);
       const errMsg = err?.response?.data?.detail || "Failed to update permission setting. Reverting changes.";
@@ -105,12 +110,13 @@ function PermissionsPage() {
   const renderToggleCell = (role, row) => {
     const isLocked = isLockedOwnerPermission(role, row.key);
     const val = isLocked ? true : !!row[role.toLowerCase()];
-    const isDisabled = !isOwner || updatingKey === `${role}-${row.key}` || isLocked;
+    const isAllowedToToggle = isRoleToggleAllowedForUser(role);
+    const isDisabled = !isAllowedToToggle || updatingKey === `${role}-${row.key}` || isLocked;
 
     return (
       <label
         className="toggle-wrapper"
-        title={isLocked ? "Locked ON for Workspace Owner" : !isOwner ? "Requires Manage Permissions rights" : ""}
+        title={isLocked ? "Locked ON for Workspace Owner" : !isAllowedToToggle ? "Read-only view" : ""}
       >
         <div className="toggle-switch">
           <input
@@ -140,8 +146,8 @@ function PermissionsPage() {
     );
   }
 
-  // Access restriction for non-owners (Admin & Member)
-  if (!isOwner) {
+  // Access restriction if user cannot view permissions matrix
+  if (!hasViewAccess) {
     return (
       <DashboardLayout>
         <PageTransition>
@@ -152,7 +158,7 @@ function PermissionsPage() {
               </div>
               <h2 className="forbidden-title">HTTP 403 - Forbidden</h2>
               <p className="forbidden-desc">
-                Access to the Permissions / RBAC configuration is restricted exclusively to the Workspace Owner.
+                Viewing permissions is disabled for your role in this workspace.
               </p>
               <button onClick={() => navigate("/dashboard")} className="back-btn">
                 <ArrowLeft size={16} />

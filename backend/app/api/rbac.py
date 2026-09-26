@@ -25,6 +25,7 @@ PERMISSION_DEFINITIONS = [
     {"key": "view_bookmarks", "label": "Bookmarks"},
     {"key": "invite_members", "label": "Invite Member"},
     {"key": "remove_members", "label": "Remove Member"},
+    {"key": "change_member_roles", "label": "Change Member Roles"},
     {"key": "view_permissions", "label": "View Permissions"},
     {"key": "manage_permissions", "label": "Manage Permissions"},
     {"key": "manage_billing", "label": "Manage Billing"},
@@ -40,6 +41,7 @@ DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
         "view_bookmarks": True,
         "invite_members": True,
         "remove_members": True,
+        "change_member_roles": True,
         "view_permissions": True,
         "manage_permissions": True,
         "manage_billing": True,
@@ -53,6 +55,7 @@ DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
         "view_bookmarks": True,
         "invite_members": True,
         "remove_members": True,
+        "change_member_roles": True,
         "view_permissions": True,
         "manage_permissions": False,
         "manage_billing": False,
@@ -66,7 +69,8 @@ DEFAULT_PERMISSIONS: Dict[str, Dict[str, bool]] = {
         "view_bookmarks": True,
         "invite_members": False,
         "remove_members": False,
-        "view_permissions": True,
+        "change_member_roles": False,
+        "view_permissions": False,
         "manage_permissions": False,
         "manage_billing": False,
     }
@@ -126,7 +130,13 @@ def check_user_permission(user: User, workspace_id: int, permission_name: str, d
     Owner always has full access (returns True).
     Admin and Member are evaluated against stored PostgreSQL permissions.
     """
+    if not user or not workspace_id:
+        return False
+
     member = get_current_workspace_member(workspace_id, user, db)
+    if not member:
+        return False
+
     user_role = (member.role or "Member").strip().capitalize()
 
     if user_role == "Owner":
@@ -145,6 +155,11 @@ def verify_owner_access(user: User, workspace_id: int, db: Session):
     If not, raises HTTP 403 Forbidden.
     """
     member = get_current_workspace_member(workspace_id, user, db)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Not a member of this workspace."
+        )
     user_role = (member.role or "Member").strip().capitalize()
     if user_role != "Owner":
         raise HTTPException(
@@ -165,7 +180,26 @@ def get_permission_matrix(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    verify_owner_access(current_user, workspace_id, db)
+    member = get_current_workspace_member(workspace_id, current_user, db)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. You are not a member of this workspace."
+        )
+
+    user_role = (member.role or "Member").strip().capitalize()
+    can_view = (
+        user_role == "Owner"
+        or check_user_permission(current_user, workspace_id, "view_permissions", db)
+        or check_user_permission(current_user, workspace_id, "manage_permissions", db)
+    )
+
+    if not can_view:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Viewing permissions is disabled for your role."
+        )
+
     perm_map = get_or_init_permissions(db, workspace_id)
 
     matrix = []
@@ -200,13 +234,37 @@ def toggle_permission(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    verify_owner_access(current_user, workspace_id, db)
+    member = get_current_workspace_member(workspace_id, current_user, db)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Not a member of this workspace."
+        )
+
+    user_role = (member.role or "Member").strip().capitalize()
+    can_manage = (
+        user_role == "Owner"
+        or check_user_permission(current_user, workspace_id, "manage_permissions", db)
+    )
+
+    if not can_manage:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Managing permissions is disabled for your role."
+        )
 
     target_role = request.role.strip().capitalize()
     if target_role not in ["Owner", "Admin", "Member"]:
         raise HTTPException(
             status_code=400,
             detail="Can only modify Owner, Admin, or Member permissions."
+        )
+
+    # Non-owners can ONLY modify Member permissions (Admin permissions must be controlled by Owner)
+    if user_role != "Owner" and target_role != "Member":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Only the Workspace Owner can modify Owner or Admin permissions."
         )
 
     pkey = request.permission.strip()
@@ -242,6 +300,34 @@ def toggle_permission(
     else:
         rec.enabled = request.enabled
 
+    # Auto-synchronize related permissions:
+    # If manage_permissions is set to True -> view_permissions must automatically be True
+    if pkey == "manage_permissions" and request.enabled:
+        view_rec = db.query(RolePermission).filter(
+            RolePermission.workspace_id == workspace_id,
+            RolePermission.role == target_role,
+            RolePermission.permission == "view_permissions"
+        ).first()
+        if not view_rec:
+            db.add(RolePermission(
+                workspace_id=workspace_id,
+                role=target_role,
+                permission="view_permissions",
+                enabled=True
+            ))
+        else:
+            view_rec.enabled = True
+
+    # If view_permissions is set to False -> manage_permissions must automatically be False
+    if pkey == "view_permissions" and not request.enabled:
+        manage_rec = db.query(RolePermission).filter(
+            RolePermission.workspace_id == workspace_id,
+            RolePermission.role == target_role,
+            RolePermission.permission == "manage_permissions"
+        ).first()
+        if manage_rec:
+            manage_rec.enabled = False
+
     db.commit()
     db.refresh(rec)
 
@@ -259,6 +345,12 @@ def get_my_permissions(
     db: Session = Depends(get_db)
 ):
     member = get_current_workspace_member(workspace_id, current_user, db)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. You are not a member of this workspace."
+        )
+
     user_role = (member.role or "Member").strip().capitalize()
 
     if user_role == "Owner":
@@ -276,3 +368,4 @@ def get_my_permissions(
         "is_owner": user_role == "Owner",
         "permissions": user_perms
     }
+

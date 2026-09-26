@@ -2,20 +2,30 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
-import { Bookmark, Clock, ArrowRight, Sparkles } from "lucide-react";
+import { Bookmark, Clock, ArrowRight, Sparkles, ShieldAlert, ArrowLeft } from "lucide-react";
+import { useAuth } from "../components/context/AuthContext";
 import { getBookmarks, getConversation } from "../services/api";
 import "../styles/bookmarks.css";
 
 function BookmarksPage() {
   const navigate = useNavigate();
+  const { permissions, isOwner } = useAuth();
   const [bookmarks, setBookmarks] = useState([]);
+  const [forbidden, setForbidden] = useState(false);
+
+  const canViewBookmarks = isOwner || permissions?.view_bookmarks !== false;
 
   useEffect(() => {
-    loadBookmarks();
-  }, []);
+    if (canViewBookmarks) {
+      loadBookmarks();
+    } else {
+      setForbidden(true);
+    }
+  }, [permissions, isOwner]);
 
   const loadBookmarks = async () => {
     try {
+      setForbidden(false);
       const data = await getBookmarks();
       // Sort descending (newest date first)
       const sorted = [...(data || [])].sort(
@@ -24,6 +34,9 @@ function BookmarksPage() {
       setBookmarks(sorted);
     } catch (err) {
       console.log("Bookmarks load error:", err);
+      if (err?.response?.status === 403) {
+        setForbidden(true);
+      }
     }
   };
 
@@ -55,6 +68,30 @@ function BookmarksPage() {
     const firstLine = text.split("\n").filter(Boolean)[0] || "";
     return firstLine.length > 85 ? `${firstLine.slice(0, 85)}...` : firstLine;
   };
+
+  if (forbidden) {
+    return (
+      <DashboardLayout>
+        <PageTransition>
+          <div className="bookmarks-container">
+            <div className="rbac-forbidden-box">
+              <div className="forbidden-icon-wrap">
+                <ShieldAlert size={32} />
+              </div>
+              <h2 className="forbidden-title">HTTP 403 - Forbidden</h2>
+              <p className="forbidden-desc">
+                Viewing bookmarks is disabled for your role in this workspace.
+              </p>
+              <button onClick={() => navigate("/dashboard")} className="back-btn">
+                <ArrowLeft size={16} />
+                Return to Dashboard
+              </button>
+            </div>
+          </div>
+        </PageTransition>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

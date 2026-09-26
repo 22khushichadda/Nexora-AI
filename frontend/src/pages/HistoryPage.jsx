@@ -2,20 +2,30 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PageTransition from "../components/PageTransition";
-import { History, MessageSquare, Clock, ArrowRight } from "lucide-react";
+import { History, MessageSquare, Clock, ArrowRight, ShieldAlert, ArrowLeft } from "lucide-react";
+import { useAuth } from "../components/context/AuthContext";
 import { getHistory, getConversation } from "../services/api";
 import "../styles/history.css";
 
 function HistoryPage() {
   const navigate = useNavigate();
+  const { permissions, isOwner } = useAuth();
   const [history, setHistory] = useState([]);
+  const [forbidden, setForbidden] = useState(false);
+
+  const canViewHistory = isOwner || permissions?.view_history !== false;
 
   useEffect(() => {
-    loadHistory();
-  }, []);
+    if (canViewHistory) {
+      loadHistory();
+    } else {
+      setForbidden(true);
+    }
+  }, [permissions, isOwner]);
 
   const loadHistory = async () => {
     try {
+      setForbidden(false);
       const data = await getHistory();
       // Sort descending (newest date first)
       const sorted = [...(data || [])].sort(
@@ -57,6 +67,9 @@ function HistoryPage() {
       setHistory(historyWithPreviews);
     } catch (err) {
       console.log("History load error:", err);
+      if (err?.response?.status === 403) {
+        setForbidden(true);
+      }
     }
   };
 
@@ -82,6 +95,30 @@ function HistoryPage() {
       timeZone: "Asia/Kolkata"
     });
   };
+
+  if (forbidden) {
+    return (
+      <DashboardLayout>
+        <PageTransition>
+          <div className="history-container">
+            <div className="rbac-forbidden-box">
+              <div className="forbidden-icon-wrap">
+                <ShieldAlert size={32} />
+              </div>
+              <h2 className="forbidden-title">HTTP 403 - Forbidden</h2>
+              <p className="forbidden-desc">
+                Viewing chat history is disabled for your role in this workspace.
+              </p>
+              <button onClick={() => navigate("/dashboard")} className="back-btn">
+                <ArrowLeft size={16} />
+                Return to Dashboard
+              </button>
+            </div>
+          </div>
+        </PageTransition>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

@@ -18,7 +18,7 @@ import "../styles/sidebar.css";
 
 function Sidebar({ isOpen = false, onClose = () => {} }) {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, permissions, isOwner } = useAuth();
 
   const handleNewChat = () => {
     onClose();
@@ -40,18 +40,25 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
     return name.slice(0, 2).toUpperCase();
   };
 
-  const userRole = (user?.role || "").trim().toLowerCase();
-  const isOwner = userRole === "owner";
-
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/documents", label: "Documents", icon: FileText },
-    { path: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-    { path: "/history", label: "History", icon: History },
-    { path: "/team", label: "Team", icon: Users },
+    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
   ];
 
-  if (isOwner) {
+  if (isOwner || permissions?.view_documents !== false) {
+    navItems.push({ path: "/documents", label: "Documents", icon: FileText });
+  }
+
+  if (isOwner || permissions?.view_bookmarks !== false) {
+    navItems.push({ path: "/bookmarks", label: "Bookmarks", icon: Bookmark });
+  }
+
+  if (isOwner || permissions?.view_history !== false) {
+    navItems.push({ path: "/history", label: "History", icon: History });
+  }
+
+  navItems.push({ path: "/team", label: "Team", icon: Users });
+
+  if (isOwner || permissions?.view_permissions || permissions?.manage_permissions) {
     navItems.push({ path: "/permissions", label: "Permissions", icon: ShieldCheck });
   }
 

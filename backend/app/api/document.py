@@ -18,7 +18,7 @@ from app.schemas.document import DocumentResponse
 
 from app.services.pdf_service import extract_pdf_data
 from app.services.background_indexer import build_document_index
-from app.utils.auth import get_optional_user
+from app.utils.auth import get_current_user
 from app.api.rbac import check_user_permission
 
 
@@ -60,10 +60,10 @@ def upload_document(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
-    if current_user and not check_user_permission(current_user, workspace_id, "upload_documents", db):
+    if not check_user_permission(current_user, workspace_id, "upload_documents", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Uploading documents is disabled for your role."
@@ -125,7 +125,7 @@ def upload_document(
 
         status="processing",
 
-        uploaded_by="Khushi",
+        uploaded_by=current_user.name if current_user else "Nexora User",
 
         workspace_id=workspace_id
 
@@ -165,10 +165,10 @@ def get_documents(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
-    if current_user and not check_user_permission(current_user, workspace_id, "view_documents", db):
+    if not check_user_permission(current_user, workspace_id, "view_documents", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Viewing documents is disabled for your role."
@@ -208,9 +208,16 @@ def document_status(
 
     workspace_id: int,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+
+    current_user: User = Depends(get_current_user)
 
 ):
+    if not check_user_permission(current_user, workspace_id, "view_documents", db):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied. Viewing documents is disabled for your role."
+        )
 
     document = (
 
@@ -262,7 +269,7 @@ def delete_document(
 
     db: Session = Depends(get_db),
 
-    current_user: User | None = Depends(get_optional_user)
+    current_user: User = Depends(get_current_user)
 
 ):
 
@@ -290,47 +297,11 @@ def delete_document(
 
         )
 
-    if current_user and not check_user_permission(current_user, document.workspace_id, "delete_documents", db):
+    if not check_user_permission(current_user, document.workspace_id, "delete_documents", db):
         raise HTTPException(
             status_code=403,
             detail="Permission denied. Deleting documents is disabled for your role."
         )
-
-    if user_email:
-
-        member = (
-
-            db.query(WorkspaceMember)
-
-            .filter(
-
-                WorkspaceMember.workspace_id == document.workspace_id,
-
-                WorkspaceMember.email == user_email
-
-            )
-
-            .first()
-
-        )
-
-        if (
-
-            member
-
-            and member.role not in ["Owner", "Admin"]
-
-            and document.uploaded_by != member.name
-
-        ):
-
-            raise HTTPException(
-
-                status_code=403,
-
-                detail="Permission denied. Only Owners, Admins, or the uploader can delete documents."
-
-            )
 
     db.delete(document)
 
