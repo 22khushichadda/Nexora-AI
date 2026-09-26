@@ -8,39 +8,23 @@ import App from "./App";
 import "./styles/global.css";
 
 function Root() {
-
     const [showDashboard, setShowDashboard] = React.useState(false);
 
+    const handleFinish = React.useCallback(() => {
+        setShowDashboard(true);
+    }, []);
+
     return (
-
         <BrowserRouter>
-
             {
-
                 showDashboard
-
                 ?
-
                 <App />
-
                 :
-
-                <IntroScreen
-
-                    onFinish={() =>
-
-                        setShowDashboard(true)
-
-                    }
-
-                />
-
+                <IntroScreen onFinish={handleFinish} />
             }
-
         </BrowserRouter>
-
     );
-
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(

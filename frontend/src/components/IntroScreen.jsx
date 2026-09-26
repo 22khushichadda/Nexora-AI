@@ -6,11 +6,11 @@ import "../styles/intro.css";
 function IntroScreen({ onFinish }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onFinish();
+      if (onFinish) onFinish();
     }, 2400);
 
     return () => clearTimeout(timer);
-  }, [onFinish]);
+  }, []);
 
   return (
     <motion.div
