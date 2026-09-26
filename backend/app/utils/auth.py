@@ -110,13 +110,13 @@ def get_current_workspace_member(
     current_user: User,
     db: Session
 ):
-    from app.database.models import WorkspaceMember
+    from app.database.models import WorkspaceMember, Workspace
     from sqlalchemy import func
 
-    if workspace_id is None:
+    if workspace_id is None or current_user is None:
         return None
 
-    # Exact lookup by matching (user_id, workspace_id)
+    # 1. Exact lookup by matching (user_id, workspace_id)
     member = (
         db.query(WorkspaceMember)
         .filter(
@@ -126,19 +126,42 @@ def get_current_workspace_member(
         .first()
     )
 
-    # Fallback: link unlinked member record if matching by email and user_id is NULL
+    # 2. Fallback: match by email within workspace_id
     if not member:
         member = (
             db.query(WorkspaceMember)
             .filter(
                 WorkspaceMember.workspace_id == workspace_id,
-                WorkspaceMember.user_id.is_(None),
                 func.lower(WorkspaceMember.email) == func.lower(current_user.email)
             )
             .first()
         )
         if member:
             member.user_id = current_user.id
+            db.commit()
+            db.refresh(member)
+
+    # 3. Fallback: if user has no membership record in this workspace at all
+    if not member:
+        workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
+        if workspace:
+            owner_exists = (
+                db.query(WorkspaceMember)
+                .filter(
+                    WorkspaceMember.workspace_id == workspace_id,
+                    func.lower(WorkspaceMember.role) == "owner"
+                )
+                .first()
+            )
+            assigned_role = "Owner" if not owner_exists else "Member"
+            member = WorkspaceMember(
+                workspace_id=workspace_id,
+                user_id=current_user.id,
+                name=current_user.name,
+                email=current_user.email,
+                role=assigned_role
+            )
+            db.add(member)
             db.commit()
             db.refresh(member)
 

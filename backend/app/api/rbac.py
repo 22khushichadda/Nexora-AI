@@ -134,10 +134,7 @@ def check_user_permission(user: User, workspace_id: int, permission_name: str, d
         return False
 
     member = get_current_workspace_member(workspace_id, user, db)
-    if not member:
-        return False
-
-    user_role = (member.role or "Member").strip().capitalize()
+    user_role = (member.role if member and member.role else "Member").strip().capitalize()
 
     if user_role == "Owner":
         return True
@@ -145,8 +142,11 @@ def check_user_permission(user: User, workspace_id: int, permission_name: str, d
     permissions_map = get_or_init_permissions(db, workspace_id)
     role_perms = permissions_map.get(user_role, {})
 
-    # Default to False if permission is unknown
-    return role_perms.get(permission_name, False)
+    if permission_name in role_perms:
+        return role_perms[permission_name]
+
+    default_role_map = DEFAULT_PERMISSIONS.get(user_role, {})
+    return default_role_map.get(permission_name, True)
 
 
 def verify_owner_access(user: User, workspace_id: int, db: Session):
