@@ -13,7 +13,7 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL",
-    "http://localhost:5173"
+    "http://10.160.72.134:5173"
 )
 
 
@@ -34,7 +34,7 @@ def send_invitation_email(
     # Invitation Link
     # ==================================================
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    frontend_url = os.getenv("FRONTEND_URL", "http://10.160.72.134:5173")
 
     invitation_link = (
         f"{frontend_url.rstrip('/')}/invite/{invitation_token}"
