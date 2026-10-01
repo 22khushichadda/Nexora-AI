@@ -12,7 +12,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 GROQ_MODEL = os.getenv(
     "GROQ_MODEL",
-    "groq/compound-mini"
+    "qwen/qwen3.8-27b"
 )
 
 JWT_SECRET_KEY = os.getenv(
